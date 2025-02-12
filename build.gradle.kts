@@ -23,6 +23,8 @@ dependencies {
     implementation(compose.desktop.currentOs)
 }
 
+//to make exe run in terminal:
+// ./gradlew runDistributable
 compose.desktop {
     application {
         mainClass = "MainKt"
