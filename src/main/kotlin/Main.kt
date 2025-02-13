@@ -140,6 +140,7 @@ fun App() {
                 contentDescription = "",
                 contentScale = ContentScale.Fit
             )
+                //todo сделать возможность кликом по месту на картинке посмотреть, какие там объекты
         }
     }
 }
