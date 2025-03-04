@@ -3,20 +3,25 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.awtEventOrNull
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -58,15 +63,24 @@ fun App() {
     //BACK_SHELF, CENTER_TABLES, TABLE_AT_DOOR, CUSTOM_PLACE
     storageNameToPngHashMap[StorageName.BACK_SHELF] = "206_backShelf.png"
     storageNameToPngHashMap[StorageName.CENTER_TABLES] = "206_center.png"
+    storageNameToPngHashMap[StorageName.TABLE_AT_DOOR] = "206_door.png"
+    storageNameToPngHashMap[StorageName.ROBOT_STAND] = "206_robotStand.png"
+    storageNameToPngHashMap[StorageName.CABLE_STAND] = "206_cableStand.png"
+    storageNameToPngHashMap[StorageName.CUSTOM_PLACE] = "206.png"
+//    storageNameToPngHashMap[StorageName.] = "206_cableStand.png"
     var imageSrc by remember { mutableStateOf("206.png") }
     val dataHolder = DataHolder()
     val things = dataHolder.getData()
+    println("all things: ")
+    things?.forEach { println(" $it") }
     var arrayOfNames = dataHolder.getItemNames()
     var namesList = arrayOfNames.toMutableList()
     namesList.clear()
     val textStyle = TextStyle(fontSize = 20.sp)
     var isLazyRowVisible by remember { mutableStateOf(false) }
     var openDialog by remember { mutableStateOf(false)}
+    var imageRatio by remember { mutableStateOf(1.0) }
+    var curPlaceItems = remember { mutableListOf(Thing()) }
     if (openDialog)
         AlertDialog( // для показа сообщения о ненайденном объекте
             onDismissRequest = { openDialog=false },//действия при закрытии окна
@@ -133,14 +147,74 @@ fun App() {
                 }
             }
             val file = loadImageFrom("src/main/resources/$imageSrc")
-            Image(
-                bitmap = file,
+            Row(){
+                Image(
+                    bitmap = file,
 //                painter = painterResource(imageSrc),
 //                painter = imageReso,
-                contentDescription = "",
-                contentScale = ContentScale.Fit
-            )
-                //todo сделать возможность кликом по месту на картинке посмотреть, какие там объекты
+                    contentDescription = "",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .pointerInput(Unit) {
+                            detectTapGestures { offset ->
+                                val coords = offset // backShelf: upper left x=355.0  y=33.0,   lowe right x=408.0  y=121.0
+                                // при размерах картинки 784 x 441
+                                println("image clicked on x=${coords.x}  y=${coords.y}")
+                                val x = coords.x * imageRatio //скалируем координаты относительно коэф-та изменения картинки
+                                val y = coords.y * imageRatio
+                                println("after scaling x=${x}  y=${y}")
+                                var place = StorageName.CUSTOM_PLACE
+//                                BACK_SHELF, CENTER_TABLES, TABLE_AT_DOOR, CUSTOM_PLACE, ROBOT_STAND, CABLE_STAND
+                                when {
+                                    x in 355.0..408.0 && y in 33.0..121.0 -> {
+                                        println("backShelf")
+                                        place = StorageName.BACK_SHELF
+                                    }
+                                    x in 349.0..394.0 && y in 208.0..337.0 -> {
+                                        println("center")
+                                        place = StorageName.CENTER_TABLES
+                                    }
+                                    x in 178.0..252.0 && y in 273.0..302.0 -> {
+                                        println("cableStand")
+                                        place = StorageName.CABLE_STAND
+                                    }
+                                    x in 474.0..564.0 && y in 269.0..303.0 -> {
+                                        println("door")
+                                        place = StorageName.TABLE_AT_DOOR
+                                    }
+                                    x in 150.0..235.0 && y in 357.0..397.0 -> {
+                                        println("robotStand")
+                                        place = StorageName.ROBOT_STAND
+                                    }
+
+                                }
+                                imageSrc = storageNameToPngHashMap[place]!!
+                                curPlaceItems = things?.filter {
+                                    it is Item && it.place.name.toString() == place.toString()
+                                } as MutableList<Thing>
+                                println("in place: $curPlaceItems")
+                            }
+
+                        }
+                        .onGloballyPositioned { layoutCoordinates ->
+                            // Get the size of the image in pixels
+                            val size = layoutCoordinates.size // IntSize (width, height)
+                            println("image size = ${size.width} x ${size.height}")
+                            imageRatio = 784.0 / size.width //получаем коэффициент изменения размера картинки
+                        }
+                )
+                LazyColumn (modifier = Modifier
+                    .wrapContentWidth()
+                ) {
+                    items(curPlaceItems){thing->
+                        println("item in LazyColumn: ${thing}")
+                        Text(
+                            text = if (thing is Item) thing.name else ""
+                        )
+                    }
+                }
+            }
         }
     }
 }

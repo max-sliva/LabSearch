@@ -4,7 +4,7 @@
 class DataHolder {
     var things: Array<Thing>? = arrayOf(
         Place(StorageName.BACK_SHELF), Place(StorageName.CENTER_TABLES), Item("Arduino uno", Place(StorageName.CENTER_TABLES)),
-        Item("Arduino Yun", Place(StorageName.BACK_SHELF))
+        Item("Arduino Yun", Place(StorageName.BACK_SHELF)), Item("HexaPod", Place(StorageName.ROBOT_STAND)),Item("QuadroPod", Place(StorageName.ROBOT_STAND))
     )
 
     fun getData(): Array<Thing>? {
