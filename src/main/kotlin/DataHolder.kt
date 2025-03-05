@@ -7,9 +7,20 @@ class DataHolder {
         Item("Arduino Yun", Place(StorageName.BACK_SHELF)), Item("HexaPod", Place(StorageName.ROBOT_STAND)),Item("QuadroPod", Place(StorageName.ROBOT_STAND))
     )
 
+    private var storageNameToPngMap = mapOf(Pair(StorageName.BACK_SHELF, "206_backShelf.png"),
+                                        Pair(StorageName.BACK_SHELF, "206_backShelf.png"),
+                                        Pair(StorageName.CENTER_TABLES, "206_center.png"),
+                                        Pair(StorageName.TABLE_AT_DOOR, "206_door.png"),
+                                        Pair(StorageName.ROBOT_STAND, "206_robotStand.png"),
+                                        Pair(StorageName.CABLE_STAND, "206_cableStand.png"),
+                                        Pair(StorageName.CUSTOM_PLACE, "206.png")
+    )
     fun getData(): Array<Thing>? {
-
         return things
+    }
+
+    fun getStorageNameToPngMap(): Map<StorageName, String> {
+        return storageNameToPngMap
     }
 
     fun getItemNames(): Array<String> {

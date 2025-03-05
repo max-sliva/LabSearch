@@ -11,19 +11,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.awtEventOrNull
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.res.loadImageBitmap
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,7 +26,6 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import org.jetbrains.skia.Image
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -40,7 +33,7 @@ import java.util.*
 fun searchItem( //возвращает нужную картинку для искомого предмета
     things: Array<Thing>?,
     searchValue: String,
-    storageNameToPngHashMap: HashMap<StorageName, String>
+    storageNameToPngHashMap: Map<StorageName, String>
 ): String {
     var imageSrc = "206.png" //дефолтная картинка
     things!!.forEach {
@@ -59,17 +52,9 @@ fun App() {
     var searchValue by remember { //объект для работы с текстом, для TextField
         mutableStateOf("") //его начальное значение
     }
-    var storageNameToPngHashMap = HashMap<StorageName, String>()
-    //BACK_SHELF, CENTER_TABLES, TABLE_AT_DOOR, CUSTOM_PLACE
-    storageNameToPngHashMap[StorageName.BACK_SHELF] = "206_backShelf.png"
-    storageNameToPngHashMap[StorageName.CENTER_TABLES] = "206_center.png"
-    storageNameToPngHashMap[StorageName.TABLE_AT_DOOR] = "206_door.png"
-    storageNameToPngHashMap[StorageName.ROBOT_STAND] = "206_robotStand.png"
-    storageNameToPngHashMap[StorageName.CABLE_STAND] = "206_cableStand.png"
-    storageNameToPngHashMap[StorageName.CUSTOM_PLACE] = "206.png"
-//    storageNameToPngHashMap[StorageName.] = "206_cableStand.png"
-    var imageSrc by remember { mutableStateOf("206.png") }
     val dataHolder = DataHolder()
+    var storageNameToPngMap = dataHolder.getStorageNameToPngMap()
+    var imageSrc by remember { mutableStateOf(storageNameToPngMap[StorageName.CUSTOM_PLACE]) }
     val things = dataHolder.getData()
     println("all things: ")
     things?.forEach { println(" $it") }
@@ -81,6 +66,8 @@ fun App() {
     var openDialog by remember { mutableStateOf(false)}
     var imageRatio by remember { mutableStateOf(1.0) }
     var curPlaceItems = remember { mutableListOf(Thing()) }
+    var place = StorageName.CUSTOM_PLACE
+
     if (openDialog)
         AlertDialog( // для показа сообщения о ненайденном объекте
             onDismissRequest = { openDialog=false },//действия при закрытии окна
@@ -122,9 +109,15 @@ fun App() {
                     placeholder = { Text(text = "Введите текст для поиска") }
                 )
                 Button(onClick = {
-                    imageSrc = searchItem(things, searchValue, storageNameToPngHashMap)
+                    imageSrc = searchItem(things, searchValue, storageNameToPngMap)
                     namesList.clear()
-//                    println("item = $item")
+                    storageNameToPngMap.forEach { k, v ->
+                        if(v==imageSrc) place = k
+                    }
+                    curPlaceItems = things?.filter {
+                        it is Item && it.place.name.toString() == place.toString()
+                    } as MutableList<Thing>
+                    println("in place: $curPlaceItems")
                     if (imageSrc == "206.png") openDialog = true
                 }) {
                     Text(text)
@@ -138,8 +131,14 @@ fun App() {
                             .padding(4.dp)
                             .clickable(onClick = {
                                 searchValue = name
-                                imageSrc = searchItem(things, searchValue, storageNameToPngHashMap)
+                                imageSrc = searchItem(things, searchValue, storageNameToPngMap)
                                 namesList.clear()
+                                storageNameToPngMap.forEach { k, v ->
+                                    if(v==imageSrc) place = k
+                                }
+                                curPlaceItems = things?.filter {
+                                    it is Item && it.place.name.toString() == place.toString()
+                                } as MutableList<Thing>
                             })
                             .border(BorderStroke(2.dp, Color.Gray))
                             .padding(4.dp)
@@ -164,32 +163,32 @@ fun App() {
                                 val x = coords.x * imageRatio //скалируем координаты относительно коэф-та изменения картинки
                                 val y = coords.y * imageRatio
                                 println("after scaling x=${x}  y=${y}")
-                                var place = StorageName.CUSTOM_PLACE
+//                                var place: StorageName
 //                                BACK_SHELF, CENTER_TABLES, TABLE_AT_DOOR, CUSTOM_PLACE, ROBOT_STAND, CABLE_STAND
-                                when {
+                                place = when {
                                     x in 355.0..408.0 && y in 33.0..121.0 -> {
                                         println("backShelf")
-                                        place = StorageName.BACK_SHELF
+                                        StorageName.BACK_SHELF
                                     }
                                     x in 349.0..394.0 && y in 208.0..337.0 -> {
                                         println("center")
-                                        place = StorageName.CENTER_TABLES
+                                        StorageName.CENTER_TABLES
                                     }
                                     x in 178.0..252.0 && y in 273.0..302.0 -> {
                                         println("cableStand")
-                                        place = StorageName.CABLE_STAND
+                                        StorageName.CABLE_STAND
                                     }
                                     x in 474.0..564.0 && y in 269.0..303.0 -> {
                                         println("door")
-                                        place = StorageName.TABLE_AT_DOOR
+                                        StorageName.TABLE_AT_DOOR
                                     }
                                     x in 150.0..235.0 && y in 357.0..397.0 -> {
                                         println("robotStand")
-                                        place = StorageName.ROBOT_STAND
+                                        StorageName.ROBOT_STAND
                                     }
-
+                                    else -> {StorageName.CUSTOM_PLACE}
                                 }
-                                imageSrc = storageNameToPngHashMap[place]!!
+                                imageSrc = storageNameToPngMap[place]!!
                                 curPlaceItems = things?.filter {
                                     it is Item && it.place.name.toString() == place.toString()
                                 } as MutableList<Thing>
