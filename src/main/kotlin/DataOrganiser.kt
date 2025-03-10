@@ -8,6 +8,9 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import com.couchbase.lite.CouchbaseLite
+import com.couchbase.lite.Database
+import com.couchbase.lite.DatabaseConfiguration
 
 @Composable
 fun OrganiserGUI() {
@@ -21,8 +24,23 @@ fun OrganiserGUI() {
     }
 }
 
+@Composable
+fun DbGUI(){
+    MaterialTheme{
+    //todo сделать интерфейс для работы с БД (просмотр всех записей, изменение, добавление, удаление)
+        Column (
+            modifier = Modifier.fillMaxSize(),
+        ){
+
+        }
+    }
+}
+
 
 fun main() = application {
+    CouchbaseLite.init()
+    val cfg = DatabaseConfiguration()
+    var database = Database("mydb", cfg)
     val windowState = rememberWindowState(
         position = WindowPosition(Alignment.Center)
     )
