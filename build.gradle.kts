@@ -22,6 +22,8 @@ dependencies {
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
     implementation("com.couchbase.lite:couchbase-lite-java:3.0.5")
+//    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+    implementation("com.google.code.gson:gson:2.8.5")
 }
 
 //to make exe run in terminal:

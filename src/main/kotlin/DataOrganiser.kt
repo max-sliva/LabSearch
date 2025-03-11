@@ -1,9 +1,15 @@
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
@@ -11,6 +17,9 @@ import androidx.compose.ui.window.rememberWindowState
 import com.couchbase.lite.CouchbaseLite
 import com.couchbase.lite.Database
 import com.couchbase.lite.DatabaseConfiguration
+import com.couchbase.lite.MutableDocument
+import com.google.gson.Gson
+
 
 @Composable
 fun OrganiserGUI() {
@@ -31,16 +40,95 @@ fun DbGUI(){
         Column (
             modifier = Modifier.fillMaxSize(),
         ){
+            Row(modifier = Modifier
+                .wrapContentHeight()
+                .border(2.dp, Color.Blue)
+            ){
+                Button(
+                    onClick = {
+                        println("load")
+                    }
 
+                ){
+                    Text(text = "Загрузить БД")
+                }
+            }
+//            TableWork()
+            TableExample()
+            //CustomTable()
         }
     }
 }
 
+@Composable
+fun TableExample() {
+    val columns = 3
+    val data = listOf(
+        listOf("Cell A1", "Cell B1", "Cell C1"),
+        listOf("Cell A2", "Cell B2", "Cell C2"),
+    )
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(columns),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        data.forEach { row ->
+            items(row.size) { index ->
+                Text(
+                    text = row[index],
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CustomTable() {
+    Column {
+        // Header Row
+        Row {
+            Text("Header A")
+            Text("Header B")
+            Text("Header C")
+        }
+
+        // Data Rows
+        listOf(
+            listOf("Cell A1", "Cell B1", "Cell C1"),
+            listOf("Cell A2", "Cell B2", "Cell C2"),
+        ).forEach { row ->
+            Row {
+                row.forEach { cell ->
+                    Text(cell)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TableWork(){
+
+}
 
 fun main() = application {
+    //todo сделать отдельный класс для работы с БД
     CouchbaseLite.init()
     val cfg = DatabaseConfiguration()
     var database = Database("mydb", cfg)
+    val data = DataHolder()
+    var mutableDoc = MutableDocument()
+//    val item = data.things?.get(0)
+//    val item = Item("Arduino", Place(name=StorageName.CUSTOM_PLACE))
+//    val gson = Gson()
+//    val json = gson.toJson(item)
+//    println("json item = $json")
+//    mutableDoc = MutableDocument().setJSON(json)
+//    database.save(mutableDoc)
+//    val json = Json.encodeToJsonElement(item)
+    println("in db ${ database.count } items")
     val windowState = rememberWindowState(
         position = WindowPosition(Alignment.Center)
     )
@@ -48,6 +136,6 @@ fun main() = application {
         state = windowState,
         onCloseRequest = ::exitApplication
     ) {
-        OrganiserGUI()
+        DbGUI()
     }
 }

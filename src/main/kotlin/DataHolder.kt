@@ -3,8 +3,8 @@
  */
 class DataHolder {
     var things: Array<Thing>? = arrayOf(
-        Place(StorageName.BACK_SHELF), Place(StorageName.CENTER_TABLES), Item("Arduino uno", Place(StorageName.CENTER_TABLES)),
-        Item("Arduino Yun", Place(StorageName.BACK_SHELF)), Item("HexaPod", Place(StorageName.ROBOT_STAND)),Item("QuadroPod", Place(StorageName.ROBOT_STAND))
+        Place(name=StorageName.BACK_SHELF), Place(name=StorageName.CENTER_TABLES), Item("Arduino uno", Place(name=StorageName.CENTER_TABLES)),
+        Item("Arduino Yun", Place(name=StorageName.BACK_SHELF)), Item("HexaPod", Place(name=StorageName.ROBOT_STAND)),Item("QuadroPod", Place(name=StorageName.ROBOT_STAND))
     )
 
     private var storageNameToPngMap = mapOf(Pair(StorageName.BACK_SHELF, "206_backShelf.png"),
