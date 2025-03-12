@@ -14,11 +14,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import com.couchbase.lite.CouchbaseLite
-import com.couchbase.lite.Database
-import com.couchbase.lite.DatabaseConfiguration
-import com.couchbase.lite.MutableDocument
-import com.google.gson.Gson
+import com.couchbase.lite.*
 
 
 @Composable
@@ -113,11 +109,62 @@ fun TableWork(){
 
 }
 
+fun getAllCollectionsFromDB(db: Database) {
+//    val db = Database("mydatabase")
+
+// Get all scopes
+    db.scopes.forEach { scope ->
+        println("Scope :: ${scope.name}")
+
+        // Get all collections for the current scope
+        scope.collections.forEach { collection ->
+            println("Collection :: ${collection.name}")
+            // Create a SQL++ query to get all documents from the collection
+            val query: Query = QueryBuilder.select(SelectResult.all()).from(DataSource.collection(collection))
+
+            query.execute().use { result ->
+                for (row in result) {
+                    val dict: Dictionary? = row.getDictionary(0)
+                    // Process each document here
+                    println("dict = $dict")
+                    val nameValue = dict!!.getString("name")
+                    print("item name = $nameValue,")
+                    val placeValue = dict.getDictionary("place")!!.getString("name")
+                    println(" place name = $placeValue")
+                }
+            }
+//            val sqlQuery = """SELECT * FROM $scope.$collection"""
+//
+//// Create a query from the SQL++ string
+//            val query = db.createQuery(sqlQuery)
+//            val gson = Gson()
+//// Execute the query and collect results
+//            val resultList = mutableListOf<Any>()
+//            query.execute().forEach { result ->
+//                val documentJson = result.getDictionary(0)?.toMap()?.let { gson.toString() }
+//                documentJson?.let {
+//                    // Assuming you have a data class for your documents
+//                    // val document = Json.decodeFromString<Frog>(it)
+//                    // resultList.add(document)
+//                    // For demonstration, just add the JSON string
+//                    resultList.add(it)
+//                }
+//            }
+
+        }
+    }
+}
+
+
 fun main() = application {
     //todo сделать отдельный класс для работы с БД
     CouchbaseLite.init()
     val cfg = DatabaseConfiguration()
     var database = Database("mydb", cfg)
+    getAllCollectionsFromDB(database)
+//    val collection = database.collection("myCollection")
+//    val collectionPlaces = database.createCollection("Places")
+//    val collectionItems = database.createCollection("Items")
     val data = DataHolder()
     var mutableDoc = MutableDocument()
 //    val item = data.things?.get(0)
@@ -127,8 +174,10 @@ fun main() = application {
 //    println("json item = $json")
 //    mutableDoc = MutableDocument().setJSON(json)
 //    database.save(mutableDoc)
+//    collectionItems.save(mutableDoc)
 //    val json = Json.encodeToJsonElement(item)
-    println("in db ${ database.count } items")
+//    println("in db ${ database.count } items")
+//    database.
     val windowState = rememberWindowState(
         position = WindowPosition(Alignment.Center)
     )
