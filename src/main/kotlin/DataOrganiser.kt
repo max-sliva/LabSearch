@@ -119,12 +119,15 @@ fun getAllCollectionsFromDB(db: Database) {
         // Get all collections for the current scope
         scope.collections.forEach { collection ->
             println("Collection :: ${collection.name}")
+            println("in db ${ db.count } items")
             // Create a SQL++ query to get all documents from the collection
             val query: Query = QueryBuilder.select(SelectResult.all()).from(DataSource.collection(collection))
 
             query.execute().use { result ->
                 for (row in result) {
                     val dict: Dictionary? = row.getDictionary(0)
+//                    val documentId = row.getString("id")
+//                    println("Document ID: $documentId")
                     // Process each document here
                     println("dict = $dict")
                     val nameValue = dict!!.getString("name")
@@ -133,24 +136,10 @@ fun getAllCollectionsFromDB(db: Database) {
                     println(" place name = $placeValue")
                 }
             }
-//            val sqlQuery = """SELECT * FROM $scope.$collection"""
-//
-//// Create a query from the SQL++ string
-//            val query = db.createQuery(sqlQuery)
-//            val gson = Gson()
-//// Execute the query and collect results
-//            val resultList = mutableListOf<Any>()
-//            query.execute().forEach { result ->
-//                val documentJson = result.getDictionary(0)?.toMap()?.let { gson.toString() }
-//                documentJson?.let {
-//                    // Assuming you have a data class for your documents
-//                    // val document = Json.decodeFromString<Frog>(it)
-//                    // resultList.add(document)
-//                    // For demonstration, just add the JSON string
-//                    resultList.add(it)
-//                }
-//            }
-
+//            val documentId = "6d53eeda-b16e-494a-a7e1-f21449ab8acf"
+//            val sourceDoc: Document? = db.getDocument(documentId)
+//            db.delete(sourceDoc!!)
+            println("in db ${ db.count } items")
         }
     }
 }
@@ -167,6 +156,8 @@ fun main() = application {
 //    val collectionItems = database.createCollection("Items")
     val data = DataHolder()
     var mutableDoc = MutableDocument()
+    val collectionItems = database.getCollection("Items")
+//    val
 //    val item = data.things?.get(0)
 //    val item = Item("Arduino", Place(name=StorageName.CUSTOM_PLACE))
 //    val gson = Gson()

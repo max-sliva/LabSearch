@@ -23,7 +23,7 @@ dependencies {
     implementation(compose.desktop.currentOs)
     implementation("com.couchbase.lite:couchbase-lite-java:3.2.1")
 //    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
-    implementation("com.google.code.gson:gson:2.8.5")
+    implementation("com.google.code.gson:gson:2.8.9")
 }
 
 //to make exe run in terminal:
