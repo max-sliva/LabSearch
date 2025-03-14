@@ -1,2 +1,2 @@
 
-open class Thing(open var info: String = "")
+open class Thing(open var id: String = "", open var info: String = "")

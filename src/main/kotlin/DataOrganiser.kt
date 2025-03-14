@@ -109,66 +109,80 @@ fun TableWork(){
 
 }
 
-fun getAllCollectionsFromDB(db: Database) {
-//    val db = Database("mydatabase")
-
-// Get all scopes
-    db.scopes.forEach { scope ->
-        println("Scope :: ${scope.name}")
-
-        // Get all collections for the current scope
-        scope.collections.forEach { collection ->
-            println("Collection :: ${collection.name}")
-            println("in db ${ db.count } items")
-            // Create a SQL++ query to get all documents from the collection
-            val query: Query = QueryBuilder.select(SelectResult.all()).from(DataSource.collection(collection))
-
-            query.execute().use { result ->
-                for (row in result) {
-                    val dict: Dictionary? = row.getDictionary(0)
-//                    val documentId = row.getString("id")
-//                    println("Document ID: $documentId")
-                    // Process each document here
-                    println("dict = $dict")
-                    val nameValue = dict!!.getString("name")
-                    print("item name = $nameValue,")
-                    val placeValue = dict.getDictionary("place")!!.getString("name")
-                    println(" place name = $placeValue")
-                }
-            }
-//            val documentId = "6d53eeda-b16e-494a-a7e1-f21449ab8acf"
-//            val sourceDoc: Document? = db.getDocument(documentId)
-//            db.delete(sourceDoc!!)
-            println("in db ${ db.count } items")
-        }
-    }
-}
+//fun getAllCollectionsFromDB(db: Database) {
+////    val db = Database("mydatabase")
+//
+//// Get all scopes
+//    db.scopes.forEach { scope ->
+//        println("Scope :: ${scope.name}")
+//
+//        // Get all collections for the current scope
+//        scope.collections.forEach { collection ->
+//            println("Collection :: ${collection.name}")
+////            println("in db ${ db.count } items")
+//            // Create a SQL++ query to get all documents from the collection
+//            val query: Query = QueryBuilder.select(SelectResult.all()).from(DataSource.collection(collection))
+//
+//            query.execute().use { result ->
+//                for (row in result) {
+//                    val dict: Dictionary? = row.getDictionary(0)
+////                    val documentId = row.getString("id")
+////                    println("Document ID: $documentId")
+//                    // Process each document here
+//                    println("dict = $dict")
+//                    val nameValue = dict!!.getString("name")
+//                    print("item name = $nameValue,")
+//                    val placeValue = dict.getDictionary("place")!!.getString("name")
+//                    println(" place name = $placeValue")
+//                }
+//            }
+////            val documentId = "6d53eeda-b16e-494a-a7e1-f21449ab8acf"
+////            val sourceDoc: Document? = db.getDocument(documentId)
+////            db.delete(sourceDoc!!)
+//            //для получения id объектов
+////            val query2: Query = QueryBuilder.select(SelectResult.expression(Meta.id))
+////                .from(database(db))
+////
+////            val resultSet = query2.execute()
+////            for (result in resultSet) {
+////                val documentId = result.getString("id")
+////                println("Document ID: $documentId")
+////            }
+////            println("in db ${ db.count } items")
+//            val collectionItems = db.getCollection("Items")
+//            println("in collection 'items' ${collectionItems!!.count} objects")
+//        }
+//    }
+//}
 
 
 fun main() = application {
     //todo сделать отдельный класс для работы с БД
-    CouchbaseLite.init()
-    val cfg = DatabaseConfiguration()
-    var database = Database("mydb", cfg)
-    getAllCollectionsFromDB(database)
-//    val collection = database.collection("myCollection")
+//    CouchbaseLite.init()
+//    val cfg = DatabaseConfiguration()
+//    var database = Database("mydb", cfg)
+////    val collection = database.collection("myCollection")
 //    val collectionPlaces = database.createCollection("Places")
 //    val collectionItems = database.createCollection("Items")
+    val dbWork = DBwork()
+
     val data = DataHolder()
     var mutableDoc = MutableDocument()
-    val collectionItems = database.getCollection("Items")
+//    val collectionItems = database.getCollection("Items")
 //    val
 //    val item = data.things?.get(0)
-//    val item = Item("Arduino", Place(name=StorageName.CUSTOM_PLACE))
+//    val item = Item(id = "1","Arduino", Place(name=StorageName.CUSTOM_PLACE))
 //    val gson = Gson()
 //    val json = gson.toJson(item)
-//    println("json item = $json")
-//    mutableDoc = MutableDocument().setJSON(json)
-//    database.save(mutableDoc)
+////    println("json item = $json")
+//    mutableDoc = MutableDocument(item.id).setJSON(json)
+////    database.save(mutableDoc)
 //    collectionItems.save(mutableDoc)
 //    val json = Json.encodeToJsonElement(item)
 //    println("in db ${ database.count } items")
 //    database.
+//    getAllCollectionsFromDB(database)
+//    deleteObjectFromCollectiobById(database, id = "1", collection = "Items")
     val windowState = rememberWindowState(
         position = WindowPosition(Alignment.Center)
     )
@@ -179,3 +193,11 @@ fun main() = application {
         DbGUI()
     }
 }
+
+//fun deleteObjectFromCollectiobById(db: Database, id: String, collection: String) {
+//    val collection = db.getCollection(collection)
+//    val sourceDoc: Document? = collection!!.getDocument(id)
+//    collection.delete(sourceDoc!!)
+//    getAllCollectionsFromDB(db)
+//
+//}
