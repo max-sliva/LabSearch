@@ -44,12 +44,15 @@ class DBwork {
         }
     }
 
+    fun addObjectToCollection(id: String, collection: String) {
 
-    fun deleteObjectFromCollectiobById(db: Database, id: String, collection: String) {
+    }
+
+    fun deleteObjectFromCollectiobById(id: String, collection: String) {
         val collection = db.getCollection(collection)
         val sourceDoc: Document? = collection!!.getDocument(id)
         collection.delete(sourceDoc!!)
-        getAllCollectionsFromDB(db)
+        getAllCollectionsFromDB()
 
     }
 }
