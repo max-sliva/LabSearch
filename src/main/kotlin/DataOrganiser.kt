@@ -111,9 +111,23 @@ fun TableWork(){
 
 fun main() = application {
     val dbWork = DBwork()
-
-    val data = DataHolder()
-    var mutableDoc = MutableDocument()
+    dbWork.getAllCollectionsFromDB()
+    println("-----------------------------------------------------------")
+//    dbWork.deleteObjectFromCollectiobById("1", "Items")
+//    dbWork.deleteObjectFromCollectiobById("2", "Items")
+//    var item = Item(id = "1","Arduino", Place(name=StorageName.CENTER_TABLES))
+//    dbWork.addObjectToCollection(id="1", obj=item, collection = "Items")
+//    item = Item(id = "2","Raspberry", Place(name=StorageName.BACK_SHELF))
+//    dbWork.addObjectToCollection(id="2", obj=item, collection = "Items")
+    val res = dbWork.getLastDocument(collectionName = "Items")
+    println("res = ${res!!.toMap()}")
+    val items = res.getDictionary("Items")
+    println("items = $items")
+    val id = items!!.getString("id")
+//    val id = res.getString("id")
+    println("last id = $id")
+//    val data = DataHolder()
+//    var mutableDoc = MutableDocument()
 //    val collectionItems = database.getCollection("Items")
 //    val
 //    val item = data.things?.get(0)

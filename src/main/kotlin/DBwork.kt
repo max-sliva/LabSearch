@@ -1,13 +1,14 @@
 import com.couchbase.lite.*
-
+import com.google.gson.Gson
+import com.couchbase.lite.Collection
 class DBwork {
-    lateinit var db: Database
+    var db: Database
 
     init {
         CouchbaseLite.init()
         println("Starting DB")
         val cfg = DatabaseConfiguration()
-        var db = Database("mydb", cfg)
+        db = Database("mydb", cfg)
 //        val collectionPlaces = database.createCollection("Places")
 //        val collectionItems = database.createCollection("Items")
     }
@@ -39,18 +40,55 @@ class DBwork {
                     }
                 }
                 val collectionItems = db.getCollection("Items")
-                println("in collection 'items' ${collectionItems!!.count} objects")
+                println("in collection 'Items' ${collectionItems!!.count} objects")
             }
         }
     }
 
-    fun addObjectToCollection(id: String, collection: String) {
+    fun addObjectToCollection(id: String, obj: Thing, collection: String) {
+//        var mutableDoc = MutableDocument()
+        val collectionInDB = db.getCollection(collection)
+        val gson = Gson()
+        val json = gson.toJson(obj)
+        println("json = $json")
+        val mutableDoc = MutableDocument(obj.id).setJSON(json)
+        println("mutableDoc = $mutableDoc")
+        collectionInDB?.save(mutableDoc)
+        getAllCollectionsFromDB()
+    }
 
+//    fun getLastObjectFromCollection(database: Database, collectionName: String): Result? {
+//        // Create a query to select all documents from the specified collection
+//        val query = QueryBuilder
+//            .select(SelectResult.all())
+//            .from(DataSource.collection(collectionName))
+//            .orderBy(Ordering.property("timestamp").descending()) // Sort by timestamp in descending order
+//            .limit(Expression.intValue(1)) // Limit to 1 result
+//
+//        // Execute the query
+//        val resultSet = query.execute()
+//
+//        // Get the first (and only) result
+//        return resultSet.allResults().firstOrNull()
+//    }
+
+    fun getLastDocument(collectionName: String): Result? {
+            val collection = db.getCollection(collectionName)
+            // Create a query to fetch documents sorted by a specific field in descending order
+            val query = QueryBuilder.select(SelectResult.all())
+                .from(DataSource.collection(collection!!))
+                .orderBy(Ordering.property("id").descending()) // Replace "timestamp" with your sort field
+                .limit(Expression.intValue(1)) // Limit to one document
+
+            val resultSet = query.execute()
+
+            // Get the first (and only) result
+            return resultSet.allResults().firstOrNull()
     }
 
     fun deleteObjectFromCollectiobById(id: String, collection: String) {
         val collection = db.getCollection(collection)
-        val sourceDoc: Document? = collection!!.getDocument(id)
+        val sourceDoc = collection!!.getDocument(id)
         collection.delete(sourceDoc!!)
         getAllCollectionsFromDB()
 
