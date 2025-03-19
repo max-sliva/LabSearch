@@ -15,6 +15,42 @@ class DBwork {
 
     fun getDB() = db
 
+    fun getAllObjectsForCollection(collectionName: String){
+        val collection = db.getCollection(collectionName)
+        var objList = mutableListOf<Thing>()
+        val query: Query = QueryBuilder.select(SelectResult.all()).from(DataSource.collection(collection!!))
+
+        query.execute().use { result ->
+            for (row in result) {
+                val dict: Dictionary? = row.getDictionary(0)
+//                    val documentId = row.getString("id")
+//                    println("Document ID: $documentId")
+                // Process each document here
+                when (collectionName) {
+                    "Items" -> {
+                        val idValue = dict!!.getString("id")
+                        val nameValue = dict!!.getString("name")
+                        val placeValue = dict.getDictionary("place")!!.getString("name")
+                        val infoValue = dict!!.getString("info")
+//                        println("dict = $dict")
+//                        print("item id = $idValue,")
+//                        print("item name = $nameValue,")
+//                        println(" place name = $placeValue")
+//                        print("item info = $infoValue,")
+                        objList.add(Item(idValue!!, nameValue!!, Place(name=StorageName.valueOf(placeValue!!)), infoValue!!))
+                    }
+                    "Places" ->{
+
+                    }
+                }
+            }
+        }
+        println("in collection $collectionName: ")
+        objList.forEach {
+            println("obj: $it")
+        }
+    }
+
     fun getAllCollectionsFromDB() {
         db.scopes.forEach { scope ->
             println("Scope :: ${scope.name}")
@@ -57,21 +93,6 @@ class DBwork {
         getAllCollectionsFromDB()
     }
 
-//    fun getLastObjectFromCollection(database: Database, collectionName: String): Result? {
-//        // Create a query to select all documents from the specified collection
-//        val query = QueryBuilder
-//            .select(SelectResult.all())
-//            .from(DataSource.collection(collectionName))
-//            .orderBy(Ordering.property("timestamp").descending()) // Sort by timestamp in descending order
-//            .limit(Expression.intValue(1)) // Limit to 1 result
-//
-//        // Execute the query
-//        val resultSet = query.execute()
-//
-//        // Get the first (and only) result
-//        return resultSet.allResults().firstOrNull()
-//    }
-
     fun getLastDocument(collectionName: String): Result? {
             val collection = db.getCollection(collectionName)
             // Create a query to fetch documents sorted by a specific field in descending order
@@ -84,6 +105,17 @@ class DBwork {
 
             // Get the first (and only) result
             return resultSet.allResults().firstOrNull()
+    }
+
+    fun getLastId(collectionName: String): String? {
+        val res = getLastDocument(collectionName = "Items")
+//        println("res = ${res!!.toMap()}")
+        val items = res?.getDictionary("Items")
+//        println("items = $items")
+        val id = items!!.getString("id")
+//    val id = res.getString("id")
+//        println("last id = $id")
+        return id
     }
 
     fun deleteObjectFromCollectiobById(id: String, collection: String) {
