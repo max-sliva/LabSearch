@@ -15,7 +15,7 @@ class DBwork {
 
     fun getDB() = db
 
-    fun getAllObjectsForCollection(collectionName: String){
+    fun getAllObjectsForCollection(collectionName: String): MutableList<Thing> {
         val collection = db.getCollection(collectionName)
         var objList = mutableListOf<Thing>()
         val query: Query = QueryBuilder.select(SelectResult.all()).from(DataSource.collection(collection!!))
@@ -49,6 +49,7 @@ class DBwork {
         objList.forEach {
             println("obj: $it")
         }
+        return objList
     }
 
     fun getAllCollectionsFromDB() {

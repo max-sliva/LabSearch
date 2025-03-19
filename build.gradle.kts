@@ -24,6 +24,8 @@ dependencies {
     implementation("com.couchbase.lite:couchbase-lite-java:3.2.1")
 //    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
     implementation("com.google.code.gson:gson:2.8.9")
+//    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation(kotlin("reflect"))
 }
 
 //to make exe run in terminal:
