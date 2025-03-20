@@ -14,6 +14,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+
 //import kotlin.reflect.full.memberProperties
 //import kotlin.reflect.jvm.isAccessible
 
@@ -34,33 +35,83 @@ fun OrganiserGUI() {
 @Composable
 fun ItemsGUI(objList: MutableList<Item>) {
 //    MaterialTheme {
-        //todo сделать интерфейс для работы с БД (просмотр всех записей, изменение, добавление, удаление)
-        Column(
-            modifier = Modifier.fillMaxSize(),
+    //todo сделать интерфейс для работы с БД (просмотр всех записей, изменение, добавление, удаление)
+    Column(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Row(
+            modifier = Modifier
+                .wrapContentHeight()
+                .border(2.dp, Color.Blue)
         ) {
-            Row(
-                modifier = Modifier
-                    .wrapContentHeight()
-                    .border(2.dp, Color.Blue)
+            Button(
+                onClick = {
+                    println("load")
+                }
+
             ) {
+                Text(text = "Загрузить БД")
+            }
+        }
+        var isChecked by remember { mutableStateOf(false) }
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text = "New item")
+            Checkbox(
+                checked = isChecked,
+                onCheckedChange = { isChecked = it }
+            )
+        }
+        if (isChecked)
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .border(2.dp, Color.Gray)
+            ) {
+                var fieldNames = objList[0].getListOfFieldNames()
+                fieldNames = fieldNames.filter { it!="id" }
+                val mapForItemFields = remember { mutableStateMapOf("name" to "", "place" to "", "info" to "" )}
+//                val mapForItemFields = remember { mutableStateMapOf<String, String>()}
+//                for (field in fieldNames){
+//                    mapForItemFields[field] = ""
+//                }
+                fieldNames.forEach { field ->
+                    TextField(
+                        value = mapForItemFields[field]!!,
+                        onValueChange = { newText -> //обработчик ввода значений в поле
+                            mapForItemFields[field] = newText //все изменения сохраняем в наш объект
+                        },
+                        label = { Text(field) },
+//                        textAlign = TextAlign.Center,
+//                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .border(2.dp, Color.Black)
+                            .weight(2f)
+                    )
+                }
                 Button(
                     onClick = {
-                        println("load")
-                    }
-
-                ) {
-                    Text(text = "Загрузить БД")
+                        println("new item = $mapForItemFields")
+//                        mapForItemFields.forEach { (k, v) ->
+//                            print()
+//                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                ){
+                    Text(text="Add")
                 }
             }
 //            TableWork()
-            TableExample(objList)
-            //CustomTable()
-        }
+        TableForItems(objList)
+        //CustomTable()
+    }
 //    }
 }
 
 @Composable
-fun TableExample(objList: MutableList<Item>) {
+fun TableForItems(objList: MutableList<Item>) {
     val itemColumns = 4
 
     LazyVerticalGrid(
@@ -83,7 +134,7 @@ fun TableExample(objList: MutableList<Item>) {
             )
         }
         objList.forEach { obj ->
-            println("obj = ${ obj.getListOfValues() }")
+            println("obj = ${obj.getListOfValues()}")
             val row = obj.getListOfValues()
             items(row.size) { index ->
                 Text(
@@ -101,21 +152,21 @@ fun TableExample(objList: MutableList<Item>) {
 //                property.isAccessible = true // Required for private properties
 ////                    val value = property.get(obj)
 //                println("${property.name} = ${property.get(obj)}")
-            }
+    }
+}
+
+
+@Composable
+fun PlacesGUI() {
+    Column {
+        // Header Row
+        Row {
+            Text("Header A")
+            Text("Header B")
+            Text("Header C")
         }
 
-
-    @Composable
-    fun PlacesGUI() {
-        Column {
-            // Header Row
-            Row {
-                Text("Header A")
-                Text("Header B")
-                Text("Header C")
-            }
-
-            // Data Rows
+        // Data Rows
 //        listOf(
 //            listOf("Cell A1", "Cell B1", "Cell C1"),
 //            listOf("Cell A2", "Cell B2", "Cell C2"),
@@ -132,19 +183,23 @@ fun TableExample(objList: MutableList<Item>) {
 ////                }
 //
 //            }
-        }
     }
+}
 //}
 
 @Composable
-fun TabScreen(objList: MutableList<Item>) {
+fun TabPane(objList: MutableList<Item>) {
     //todo сделать нормальное оформление табов
     MaterialTheme {
         var tabIndex by remember { mutableStateOf(0) }
         val tabs = listOf("Items", "Places")
 
         Column(modifier = Modifier.fillMaxWidth()) {
-            TabRow(selectedTabIndex = tabIndex) {
+            TabRow(
+                selectedTabIndex = tabIndex,
+                contentColor = Color.Blue,
+                backgroundColor = Color.White
+            ) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         text = { Text(title) },
@@ -183,6 +238,6 @@ fun main() = application {
         onCloseRequest = ::exitApplication
     ) {
 //        ItemsGUI(objList)
-        TabScreen(objList)
+        TabPane(objList)
     }
 }
