@@ -2,20 +2,20 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.isAccessible
+//import kotlin.reflect.full.memberProperties
+//import kotlin.reflect.jvm.isAccessible
 
 //var objList = remember { mutableListOf(Thing()) }
 
@@ -32,8 +32,8 @@ fun OrganiserGUI() {
 }
 
 @Composable
-fun DbGUI(objList: MutableList<Item>) {
-    MaterialTheme {
+fun ItemsGUI(objList: MutableList<Item>) {
+//    MaterialTheme {
         //todo сделать интерфейс для работы с БД (просмотр всех записей, изменение, добавление, удаление)
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -56,38 +56,43 @@ fun DbGUI(objList: MutableList<Item>) {
             TableExample(objList)
             //CustomTable()
         }
-    }
+//    }
 }
 
 @Composable
 fun TableExample(objList: MutableList<Item>) {
-    val columns = 4
-//    val data = listOf(
-//        listOf("Cell A1", "Cell B1", "Cell C1"),
-//        listOf("Cell A2", "Cell B2", "Cell C2"),
-//    )
+    val itemColumns = 4
 
     LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
+        columns = GridCells.Fixed(itemColumns),
+//        columns = GridCells.Adaptive(20.dp),
+//        columns = GridCells.FixedSize(20.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier
+            .border(2.dp, Color.Black)
     ) {
-//        data.forEach { row ->
-//            items(row.size) { index ->
-//                Text(
-//                    text = row[index],
-//                    modifier = Modifier.padding(8.dp)
-//                )
-//            }
-//        }
+        val fieldNames = objList[0].getListOfFieldNames()
+        items(fieldNames.size) { index ->
+            Text(
+                text = fieldNames[index],
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .border(2.dp, Color.Black)
+            )
+        }
         objList.forEach { obj ->
             println("obj = ${ obj.getListOfValues() }")
             val row = obj.getListOfValues()
             items(row.size) { index ->
                 Text(
                     text = row[index],
-                    modifier = Modifier.padding(8.dp)
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+//                        .padding(start=20.dp)
                         .border(2.dp, Color.Blue)
+//                        .
                 )
             }
         }
@@ -101,7 +106,7 @@ fun TableExample(objList: MutableList<Item>) {
 
 
     @Composable
-    fun CustomTable() {
+    fun PlacesGUI() {
         Column {
             // Header Row
             Row {
@@ -132,9 +137,32 @@ fun TableExample(objList: MutableList<Item>) {
 //}
 
 @Composable
-fun TableWork() {
+fun TabScreen(objList: MutableList<Item>) {
+    //todo сделать нормальное оформление табов
+    MaterialTheme {
+        var tabIndex by remember { mutableStateOf(0) }
+        val tabs = listOf("Items", "Places")
 
+        Column(modifier = Modifier.fillMaxWidth()) {
+            TabRow(selectedTabIndex = tabIndex) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        text = { Text(title) },
+                        selected = tabIndex == index,
+                        onClick = { tabIndex = index }
+                    )
+                }
+            }
+
+            when (tabIndex) {
+                0 -> ItemsGUI(objList)
+                1 -> PlacesGUI()
+//            2 -> SettingsScreen()
+            }
+        }
+    }
 }
+
 
 fun main() = application {
     val dbWork = DBwork()
@@ -154,6 +182,7 @@ fun main() = application {
         state = windowState,
         onCloseRequest = ::exitApplication
     ) {
-        DbGUI(objList)
+//        ItemsGUI(objList)
+        TabScreen(objList)
     }
 }

@@ -6,4 +6,8 @@ class Item( id: String = "", var name: String, var place: Place, info: String = 
     fun getListOfValues(): List<String> {
        return listOf(id, name, place.name.toString(), info)
     }
+
+    fun getListOfFieldNames(): List<String> {
+        return listOf("id", "name", "place", "info")
+    }
 }
