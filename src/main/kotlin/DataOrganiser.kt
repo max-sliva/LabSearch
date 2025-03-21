@@ -3,6 +3,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +35,43 @@ fun OrganiserGUI() {
 }
 
 @Composable
-fun ItemsGUI(objList: MutableList<Item>) {
+fun ComboBoxExample() {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedOption by remember { mutableStateOf("Select an option") }
+    val options = listOf("Option 1", "Option 2", "Option 3")
+ //todo поправить комбобокс
+    Box(modifier = Modifier.wrapContentWidth()) {
+        OutlinedTextField(
+            value = selectedOption,
+            onValueChange = {},
+            readOnly = true,
+            modifier = Modifier.wrapContentWidth(),
+            label = { Text("place") },
+            trailingIcon = {
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null)
+                }
+            }
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.wrapContentWidth()
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(onClick = {
+                    selectedOption = option
+                    expanded = false
+                }) {
+                    Text(text = option)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ItemsGUI(objList: MutableList<Item>, dbWork: DBwork) {
 //    MaterialTheme {
     //todo сделать интерфейс для работы с БД (просмотр всех записей, изменение, добавление, удаление)
     Column(
@@ -78,22 +116,30 @@ fun ItemsGUI(objList: MutableList<Item>) {
 //                    mapForItemFields[field] = ""
 //                }
                 fieldNames.forEach { field ->
-                    TextField(
-                        value = mapForItemFields[field]!!,
-                        onValueChange = { newText -> //обработчик ввода значений в поле
-                            mapForItemFields[field] = newText //все изменения сохраняем в наш объект
-                        },
-                        label = { Text(field) },
-//                        textAlign = TextAlign.Center,
-//                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .border(2.dp, Color.Black)
-                            .weight(2f)
-                    )
+                    if (field!="place")
+                        TextField(
+                            value = mapForItemFields[field]!!,
+                            onValueChange = { newText -> //обработчик ввода значений в поле
+                                mapForItemFields[field] = newText //все изменения сохраняем в наш объект
+                            },
+                            label = { Text(field) },
+    //                        textAlign = TextAlign.Center,
+    //                        fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .border(2.dp, Color.Black)
+                                .weight(2f)
+                        )
+                    else ComboBoxExample()
                 }
                 Button(
                     onClick = {
-                        println("new item = $mapForItemFields")
+                        println("mapForItemFields = $mapForItemFields")
+                        val lastId = dbWork.getLastId("Items")
+                        val place = Place(name = StorageName.valueOf(mapForItemFields["place"]!!))
+                        val newItem = Item(id = lastId!!, name = mapForItemFields["name"]!!, place = place, info = mapForItemFields["info"]!!)
+                        println("new item = $newItem")
+
+//                        dbWork.addObjectToCollection()
 //                        mapForItemFields.forEach { (k, v) ->
 //                            print()
 //                        }
@@ -143,7 +189,6 @@ fun TableForItems(objList: MutableList<Item>) {
                     modifier = Modifier
 //                        .padding(start=20.dp)
                         .border(2.dp, Color.Blue)
-//                        .
                 )
             }
         }
@@ -188,7 +233,7 @@ fun PlacesGUI() {
 //}
 
 @Composable
-fun TabPane(objList: MutableList<Item>) {
+fun TabPane(objList: MutableList<Item>, dbWork: DBwork) {
     //todo сделать нормальное оформление табов
     MaterialTheme {
         var tabIndex by remember { mutableStateOf(0) }
@@ -210,7 +255,7 @@ fun TabPane(objList: MutableList<Item>) {
             }
 
             when (tabIndex) {
-                0 -> ItemsGUI(objList)
+                0 -> ItemsGUI(objList, dbWork)
                 1 -> PlacesGUI()
 //            2 -> SettingsScreen()
             }
@@ -238,6 +283,6 @@ fun main() = application {
         onCloseRequest = ::exitApplication
     ) {
 //        ItemsGUI(objList)
-        TabPane(objList)
+        TabPane(objList, dbWork)
     }
 }
