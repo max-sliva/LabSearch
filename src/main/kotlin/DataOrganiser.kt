@@ -1,13 +1,17 @@
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.onClick
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -16,6 +20,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import kotlin.enums.EnumEntries
 
 //import kotlin.reflect.full.memberProperties
 //import kotlin.reflect.jvm.isAccessible
@@ -34,18 +39,33 @@ fun OrganiserGUI() {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ComboBoxExample() {
+fun ComboBoxExample(entries: EnumEntries<StorageName>, onUpdate: (x: String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf("Select an option") }
-    val options = listOf("Option 1", "Option 2", "Option 3")
+    val options = entries.toList()
  //todo поправить комбобокс
     Box(modifier = Modifier.wrapContentWidth()) {
         OutlinedTextField(
             value = selectedOption,
             onValueChange = {},
+//            modifier = Modifier
+//                .clickable(onClick ={
+//                    expanded = !expanded
+//                },
             readOnly = true,
-            modifier = Modifier.wrapContentWidth(),
+            modifier = Modifier.wrapContentWidth()
+                .clickable {
+                    println("combo clicked")
+                    expanded = !expanded
+                }
+                .onFocusChanged { focusState ->
+                if (focusState.isFocused) {
+                    println("combo isFocused")
+                    expanded = !expanded
+                }
+            },
             label = { Text("place") },
             trailingIcon = {
                 IconButton(onClick = { expanded = !expanded }) {
@@ -60,10 +80,11 @@ fun ComboBoxExample() {
         ) {
             options.forEach { option ->
                 DropdownMenuItem(onClick = {
-                    selectedOption = option
+                    selectedOption = option.toString()
                     expanded = false
+                    onUpdate(selectedOption)
                 }) {
-                    Text(text = option)
+                    Text(text = option.toString())
                 }
             }
         }
@@ -121,6 +142,7 @@ fun ItemsGUI(objList: MutableList<Item>, dbWork: DBwork) {
                             value = mapForItemFields[field]!!,
                             onValueChange = { newText -> //обработчик ввода значений в поле
                                 mapForItemFields[field] = newText //все изменения сохраняем в наш объект
+                                //todo сделать активацию кнопки, если заполнены поля name и place03
                             },
                             label = { Text(field) },
     //                        textAlign = TextAlign.Center,
@@ -129,7 +151,9 @@ fun ItemsGUI(objList: MutableList<Item>, dbWork: DBwork) {
                                 .border(2.dp, Color.Black)
                                 .weight(2f)
                         )
-                    else ComboBoxExample()
+                    else ComboBoxExample(StorageName.entries) {it->
+                        mapForItemFields["place"] = it
+                    }
                 }
                 Button(
                     onClick = {
