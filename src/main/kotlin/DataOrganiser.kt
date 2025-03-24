@@ -159,10 +159,22 @@ fun ItemsGUI(objList: MutableList<Item>, dbWork: DBwork) {
                     onClick = {
                         println("mapForItemFields = $mapForItemFields")
                         val lastId = dbWork.getLastId("Items")
-                        val place = Place(name = StorageName.valueOf(mapForItemFields["place"]!!))
-                        val newItem = Item(id = lastId!!, name = mapForItemFields["name"]!!, place = place, info = mapForItemFields["info"]!!)
-                        println("new item = $newItem")
-
+                        var place : Place = Place()
+                        try {
+                            place = Place(name = StorageName.valueOf(mapForItemFields["place"]!!))
+                            val newItem = Item(id = (lastId!!.toInt()+1).toString(), name = mapForItemFields["name"]!!, place = place, info = mapForItemFields["info"]!!)
+                            println("new item = $newItem")
+                            dbWork.addObjectToCollection(newItem.id, newItem, "Items")
+                            //todo выяснить, почему сразу не обновляется таблица с объектами
+                        } catch (e: IllegalArgumentException){
+                           println("error in new item")
+                            //todo сделать всплывающее сообщение с просьбой выбрать место объекта
+                        }
+//                        finally {
+//                            val newItem = Item(id = lastId!!+1, name = mapForItemFields["name"]!!, place = place, info = mapForItemFields["info"]!!)
+//                            println("new item = $newItem")
+//                        }
+                      //  if (newItem.name!="" && place!=)
 //                        dbWork.addObjectToCollection()
 //                        mapForItemFields.forEach { (k, v) ->
 //                            print()
