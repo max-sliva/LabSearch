@@ -4,11 +4,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.onClick
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -45,7 +45,7 @@ fun ComboBoxExample(entries: EnumEntries<StorageName>, onUpdate: (x: String) -> 
     var expanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf("Select an option") }
     val options = entries.toList()
- //todo поправить комбобокс
+    //todo поправить комбобокс
     Box(modifier = Modifier.wrapContentWidth()) {
         OutlinedTextField(
             value = selectedOption,
@@ -61,11 +61,11 @@ fun ComboBoxExample(entries: EnumEntries<StorageName>, onUpdate: (x: String) -> 
                     expanded = !expanded
                 }
                 .onFocusChanged { focusState ->
-                if (focusState.isFocused) {
-                    println("combo isFocused")
-                    expanded = !expanded
-                }
-            },
+                    if (focusState.isFocused) {
+                        println("combo isFocused")
+                        expanded = !expanded
+                    }
+                },
             label = { Text("place") },
             trailingIcon = {
                 IconButton(onClick = { expanded = !expanded }) {
@@ -92,9 +92,15 @@ fun ComboBoxExample(entries: EnumEntries<StorageName>, onUpdate: (x: String) -> 
 }
 
 @Composable
-fun ItemsGUI(objList: MutableList<Item>, dbWork: DBwork) {
+fun ItemsGUI(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
 //    MaterialTheme {
     //todo сделать интерфейс для работы с БД (просмотр всех записей, изменение, добавление, удаление)
+    println("ItemsGUI")
+//    var objList = remember { mutableStateListOf<Item>() }
+//    var objList = mutableStateListOf<Item>()
+    var updateDb = remember { mutableStateOf(true) }
+    var objList = dbWork.getAllObjectsForCollection("Items") as List<Item>
+
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -113,7 +119,6 @@ fun ItemsGUI(objList: MutableList<Item>, dbWork: DBwork) {
             }
         }
         var isChecked by remember { mutableStateOf(false) }
-
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = "New item")
             Checkbox(
@@ -125,19 +130,15 @@ fun ItemsGUI(objList: MutableList<Item>, dbWork: DBwork) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .border(2.dp, Color.Gray)
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .border(2.dp, Color.Gray)
             ) {
                 var fieldNames = objList[0].getListOfFieldNames()
-                fieldNames = fieldNames.filter { it!="id" }
-                val mapForItemFields = remember { mutableStateMapOf("name" to "", "place" to "", "info" to "" )}
-//                val mapForItemFields = remember { mutableStateMapOf<String, String>()}
-//                for (field in fieldNames){
-//                    mapForItemFields[field] = ""
-//                }
+                fieldNames = fieldNames.filter { it != "id" }
+                val mapForItemFields = remember { mutableStateMapOf("name" to "", "place" to "", "info" to "") }
                 fieldNames.forEach { field ->
-                    if (field!="place")
+                    if (field != "place")
                         TextField(
                             value = mapForItemFields[field]!!,
                             onValueChange = { newText -> //обработчик ввода значений в поле
@@ -145,13 +146,13 @@ fun ItemsGUI(objList: MutableList<Item>, dbWork: DBwork) {
                                 //todo сделать активацию кнопки, если заполнены поля name и place03
                             },
                             label = { Text(field) },
-    //                        textAlign = TextAlign.Center,
-    //                        fontWeight = FontWeight.Bold,
+                            //                        textAlign = TextAlign.Center,
+                            //                        fontWeight = FontWeight.Bold,
                             modifier = Modifier
                                 .border(2.dp, Color.Black)
                                 .weight(2f)
                         )
-                    else ComboBoxExample(StorageName.entries) {it->
+                    else ComboBoxExample(StorageName.entries) { it ->
                         mapForItemFields["place"] = it
                     }
                 }
@@ -159,43 +160,56 @@ fun ItemsGUI(objList: MutableList<Item>, dbWork: DBwork) {
                     onClick = {
                         println("mapForItemFields = $mapForItemFields")
                         val lastId = dbWork.getLastId("Items")
-                        var place : Place = Place()
+                        var place: Place = Place()
                         try {
                             place = Place(name = StorageName.valueOf(mapForItemFields["place"]!!))
-                            val newItem = Item(id = (lastId!!.toInt()+1).toString(), name = mapForItemFields["name"]!!, place = place, info = mapForItemFields["info"]!!)
+                            val newItem = Item(
+                                id = (lastId!!.toInt() + 1).toString(),
+                                name = mapForItemFields["name"]!!,
+                                place = place,
+                                info = mapForItemFields["info"]!!
+                            )
                             println("new item = $newItem")
                             dbWork.addObjectToCollection(newItem.id, newItem, "Items")
-                            //todo выяснить, почему сразу не обновляется таблица с объектами
-                        } catch (e: IllegalArgumentException){
-                           println("error in new item")
+//                            objList = dbWork.getAllObjectsForCollection("Items") as SnapshotStateList<Item>
+//                            isChecked = false
+                            updateDb.value = true
+                        } catch (e: IllegalArgumentException) {
+                            println("error in new item")
                             //todo сделать всплывающее сообщение с просьбой выбрать место объекта
                         }
 //                        finally {
 //                            val newItem = Item(id = lastId!!+1, name = mapForItemFields["name"]!!, place = place, info = mapForItemFields["info"]!!)
 //                            println("new item = $newItem")
 //                        }
-                      //  if (newItem.name!="" && place!=)
+                        //  if (newItem.name!="" && place!=)
 //                        dbWork.addObjectToCollection()
 //                        mapForItemFields.forEach { (k, v) ->
 //                            print()
 //                        }
                     },
                     modifier = Modifier.weight(1f),
-                ){
-                    Text(text="Add")
+                ) {
+                    Text(text = "Add")
                 }
             }
 //            TableWork()
-        TableForItems(objList)
+        TableForItems(/*objList,*/ updateDb, dbWork)
         //CustomTable()
     }
 //    }
 }
 
 @Composable
-fun TableForItems(objList: MutableList<Item>) {
+fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>, dbWork: DBwork) {
     val itemColumns = 4
-
+    var objList = remember { mutableStateListOf<Item>() }
+    dbWork.getAllObjectsForCollection("Items").also { objList = it as SnapshotStateList<Item> }
+    if (updateDb.value) {
+        objList = dbWork.getAllObjectsForCollection("Items") as SnapshotStateList<Item>
+        updateDb.value = false
+        println("db updated")
+    }
     LazyVerticalGrid(
         columns = GridCells.Fixed(itemColumns),
 //        columns = GridCells.Adaptive(20.dp),
@@ -206,6 +220,7 @@ fun TableForItems(objList: MutableList<Item>) {
             .border(2.dp, Color.Black)
     ) {
         val fieldNames = objList[0].getListOfFieldNames()
+//        val fieldNames = objList2[0].getListOfFieldNames()
         items(fieldNames.size) { index ->
             Text(
                 text = fieldNames[index],
@@ -215,8 +230,10 @@ fun TableForItems(objList: MutableList<Item>) {
                     .border(2.dp, Color.Black)
             )
         }
+        println("TableForItems updated")
         objList.forEach { obj ->
-            println("obj = ${obj.getListOfValues()}")
+//        objList2.forEach { obj ->
+//            println("in table obj = ${obj.getListOfValues()}")
             val row = obj.getListOfValues()
             items(row.size) { index ->
                 Text(
@@ -228,11 +245,6 @@ fun TableForItems(objList: MutableList<Item>) {
                 )
             }
         }
-//                for (property in (obj as Item).javaClass.declaredFields) {
-//            for (property in Item::class.memberProperties) {
-//                property.isAccessible = true // Required for private properties
-////                    val value = property.get(obj)
-//                println("${property.name} = ${property.get(obj)}")
     }
 }
 
@@ -269,7 +281,7 @@ fun PlacesGUI() {
 //}
 
 @Composable
-fun TabPane(objList: MutableList<Item>, dbWork: DBwork) {
+fun TabPane(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
     //todo сделать нормальное оформление табов
     MaterialTheme {
         var tabIndex by remember { mutableStateOf(0) }
@@ -291,7 +303,7 @@ fun TabPane(objList: MutableList<Item>, dbWork: DBwork) {
             }
 
             when (tabIndex) {
-                0 -> ItemsGUI(objList, dbWork)
+                0 -> ItemsGUI(/*objList,*/ dbWork)
                 1 -> PlacesGUI()
 //            2 -> SettingsScreen()
             }
@@ -306,8 +318,10 @@ fun main() = application {
     println("-----------------------------------------------------------")
 //    dbWork.deleteObjectFromCollectiobById("1", "Items")
 //    dbWork.deleteObjectFromCollectiobById("2", "Items")
-    var objList: MutableList<Item>
-    dbWork.getAllObjectsForCollection("Items").also { objList = it as MutableList<Item> }
+//    var objList: MutableList<Item>
+//    var objList = remember { mutableStateListOf<Item>()}
+//    dbWork.getAllObjectsForCollection("Items").also { objList = it as SnapshotStateList<Item> }
+//    objList = dbWork.getAllObjectsForCollection("Items") as SnapshotStateList<Item>
     val id = dbWork.getLastId(collectionName = "Items")
     println("last id = $id")
 
@@ -319,6 +333,6 @@ fun main() = application {
         onCloseRequest = ::exitApplication
     ) {
 //        ItemsGUI(objList)
-        TabPane(objList, dbWork)
+        TabPane(/*objList,*/ dbWork)
     }
 }

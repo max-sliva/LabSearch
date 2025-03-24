@@ -1,6 +1,9 @@
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.couchbase.lite.*
 import com.google.gson.Gson
 import com.couchbase.lite.Collection
+@Immutable
 class DBwork {
     var db: Database
 
@@ -15,9 +18,9 @@ class DBwork {
 
     fun getDB() = db
 
-    fun getAllObjectsForCollection(collectionName: String): MutableList<Thing> {
+    fun getAllObjectsForCollection(collectionName: String): SnapshotStateList<Thing> {
         val collection = db.getCollection(collectionName)
-        var objList = mutableListOf<Thing>()
+        var objList = SnapshotStateList<Thing>()
         val query: Query = QueryBuilder.select(SelectResult.all()).from(DataSource.collection(collection!!))
 
         query.execute().use { result ->
@@ -45,10 +48,10 @@ class DBwork {
                 }
             }
         }
-        println("in collection $collectionName: ")
-        objList.forEach {
-            println("obj: $it")
-        }
+//        println("in collection $collectionName: ")
+//        objList.forEach {
+//            println("obj: $it")
+//        }
         return objList
     }
 

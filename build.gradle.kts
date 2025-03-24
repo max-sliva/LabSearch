@@ -15,6 +15,10 @@ repositories {
     google()
 }
 
+composeCompiler {
+    enableStrongSkippingMode = true
+}
+
 dependencies {
     // Note, if you develop a library, you should use compose.desktop.common.
     // compose.desktop.currentOs should be used in launcher-sourceSet
