@@ -1,12 +1,13 @@
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
+import androidx.compose.foundation.ContextMenuArea
 import androidx.compose.foundation.layout.*
+//import androidx.compose.foundation.layout.RowScopeInstance.weight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -94,7 +95,7 @@ fun ComboBoxExample(entries: EnumEntries<StorageName>, onUpdate: (x: String) -> 
 @Composable
 fun ItemsGUI(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
 //    MaterialTheme {
-    //todo сделать интерфейс для работы с БД (просмотр всех записей, изменение, добавление, удаление)
+    //todo доделать интерфейс для работы с БД (изменение)
     println("ItemsGUI")
 //    var objList = remember { mutableStateListOf<Item>() }
 //    var objList = mutableStateListOf<Item>()
@@ -112,8 +113,11 @@ fun ItemsGUI(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
             Button(
                 onClick = {
                     println("load")
-                }
-
+                },
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color(0xff1e63b2), // Custom background color
+                    contentColor = Color.White    // Custom text color
+                ),
             ) {
                 Text(text = "Загрузить БД")
             }
@@ -219,7 +223,8 @@ fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>, dbWo
         modifier = Modifier
             .border(2.dp, Color.Black)
     ) {
-        val fieldNames = objList[0].getListOfFieldNames()
+        var fieldNames = objList[0].getListOfFieldNames()
+//        fieldNames = fieldNames.plus("")
 //        val fieldNames = objList2[0].getListOfFieldNames()
         items(fieldNames.size) { index ->
             Text(
@@ -228,6 +233,8 @@ fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>, dbWo
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .border(2.dp, Color.Black)
+//                    .weight((index+1).toFloat())
+//                    .weight(5f)
             )
         }
         println("TableForItems updated")
@@ -236,14 +243,43 @@ fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>, dbWo
 //            println("in table obj = ${obj.getListOfValues()}")
             val row = obj.getListOfValues()
             items(row.size) { index ->
-                Text(
-                    text = row[index],
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
+                ContextMenuArea(
+        //todo доделать пункт для редактирования
+                    items = {
+                        listOf(
+                            ContextMenuItem("Edit") {
+                                println("trying to edit item with id = ${row[0]} ")
+                            },
+                            ContextMenuItem("Delete") {
+                                println("trying to delete item with id = ${row[0]} ")
+                                val delId = row[0]
+                                dbWork.deleteObjectFromCollectiobById(delId, "Items")
+                                updateDb.value = true
+                            }
+                        )
+                    }
+                ) {
+                    Text(
+                        text = row[index],
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
 //                        .padding(start=20.dp)
-                        .border(2.dp, Color.Blue)
-                )
+                            .border(2.dp, Color(0xff1e63b2))
+                    )
+                }
             }
+//            item {
+//                Button(
+//                    onClick = {
+//                        println("trying to delete item with id = ${row[0]} ")
+//                    }
+//                ){
+//                    Icon(
+//                        imageVector = Icons.Default.Close,
+//                        contentDescription = "Delete Icon"
+//                    )
+//                }
+//            }
         }
     }
 }
