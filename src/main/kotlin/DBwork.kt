@@ -32,9 +32,9 @@ class DBwork {
                 when (collectionName) {
                     "Items" -> {
                         val idValue = dict!!.getString("id")
-                        val nameValue = dict!!.getString("name")
+                        val nameValue = dict.getString("name")
                         val placeValue = dict.getDictionary("place")!!.getString("name")
-                        val infoValue = dict!!.getString("info")
+                        val infoValue = dict.getString("info")
 //                        println("dict = $dict")
 //                        print("item id = $idValue,")
 //                        print("item name = $nameValue,")

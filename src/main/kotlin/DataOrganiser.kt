@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -42,7 +41,7 @@ fun OrganiserGUI() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ComboBoxExample(entries: EnumEntries<StorageName>, onUpdate: (x: String) -> Unit) {
+fun ComboBoxExample(entries: EnumEntries<StorageName>/*, btnActive: Boolean*/, onUpdate: (x: String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf("Select an option") }
     val options = entries.toList()
@@ -123,6 +122,7 @@ fun ItemsGUI(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
             }
         }
         var isChecked by remember { mutableStateOf(false) }
+        var btnActive = remember { mutableStateOf(false) }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = "New item")
             Checkbox(
@@ -130,78 +130,110 @@ fun ItemsGUI(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
                 onCheckedChange = { isChecked = it }
             )
         }
-        if (isChecked)
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .border(2.dp, Color.Gray)
-            ) {
-                var fieldNames = objList[0].getListOfFieldNames()
-                fieldNames = fieldNames.filter { it != "id" }
-                val mapForItemFields = remember { mutableStateMapOf("name" to "", "place" to "", "info" to "") }
-                fieldNames.forEach { field ->
-                    if (field != "place")
-                        TextField(
-                            value = mapForItemFields[field]!!,
-                            onValueChange = { newText -> //обработчик ввода значений в поле
-                                mapForItemFields[field] = newText //все изменения сохраняем в наш объект
-                                //todo сделать активацию кнопки, если заполнены поля name и place03
-                            },
-                            label = { Text(field) },
-                            //                        textAlign = TextAlign.Center,
-                            //                        fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                                .border(2.dp, Color.Black)
-                                .weight(2f)
-                        )
-                    else ComboBoxExample(StorageName.entries) { it ->
-                        mapForItemFields["place"] = it
-                    }
-                }
-                Button(
-                    onClick = {
-                        println("mapForItemFields = $mapForItemFields")
-                        val lastId = dbWork.getLastId("Items")
-                        var place: Place = Place()
-                        try {
-                            place = Place(name = StorageName.valueOf(mapForItemFields["place"]!!))
-                            val newItem = Item(
-                                id = (lastId!!.toInt() + 1).toString(),
-                                name = mapForItemFields["name"]!!,
-                                place = place,
-                                info = mapForItemFields["info"]!!
-                            )
-                            println("new item = $newItem")
-                            dbWork.addObjectToCollection(newItem.id, newItem, "Items")
-//                            objList = dbWork.getAllObjectsForCollection("Items") as SnapshotStateList<Item>
-//                            isChecked = false
-                            updateDb.value = true
-                        } catch (e: IllegalArgumentException) {
-                            println("error in new item")
-                            //todo сделать всплывающее сообщение с просьбой выбрать место объекта
-                        }
-//                        finally {
-//                            val newItem = Item(id = lastId!!+1, name = mapForItemFields["name"]!!, place = place, info = mapForItemFields["info"]!!)
-//                            println("new item = $newItem")
-//                        }
-                        //  if (newItem.name!="" && place!=)
-//                        dbWork.addObjectToCollection()
-//                        mapForItemFields.forEach { (k, v) ->
-//                            print()
-//                        }
-                    },
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text(text = "Add")
-                }
+        if (isChecked) {
+            var fieldNames = objList[0].getListOfFieldNames()
+//            MakeInputRow(objList, btnActive, dbWork, updateDb)
+            //todo поправить ф-ию с возвращением нового объекта и потом ее использовать для редактирования объекта
+            // добавить массив с дефолтными значениями
+            MakeInputRow(id = "", fieldNames, btnActive, dbWork, updateDb){ item->
+                dbWork.addObjectToCollection(item.id, item, "Items")
             }
+        } else btnActive.value = false
 //            TableWork()
         TableForItems(/*objList,*/ updateDb, dbWork)
         //CustomTable()
     }
 //    }
+}
+
+@Composable
+fun MakeInputRow(
+    id: String = "",
+    fieldNames_: List<String>,
+    btnActive: MutableState<Boolean>,
+    dbWork: DBwork,
+    updateDb: MutableState<Boolean>,
+    onUpdate: (x: Item) -> Unit
+) {
+//    var btnActive1 = btnActive
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .border(2.dp, Color.Gray)
+    ) {
+//        var fieldNames = fieldNames_
+        var fieldNames = fieldNames_.filter { it != "id" }
+        val mapForItemFields = remember { mutableStateMapOf("name" to "", "place" to "", "info" to "") }
+        fieldNames.forEach { field ->
+            if (field != "place")
+                TextField(
+                    value = mapForItemFields[field]!!,
+                    onValueChange = { newText -> //обработчик ввода значений в поле
+                        mapForItemFields[field] = newText //все изменения сохраняем в наш объект
+                        println("place = ${mapForItemFields["place"]} name = place = ${mapForItemFields["name"]}")
+                        if (mapForItemFields["place"] != "" && mapForItemFields["name"] != "") {
+                            println("activate btn")
+                            btnActive.value = true
+                        } else {
+                            println("disactivate btn")
+                            btnActive.value = false
+                        }
+//                                if (mapForItemFields["place"]!="" && mapForItemFields["name"]!="") println("activate btn")
+                    },
+                    label = { Text(field) },
+                    //                        textAlign = TextAlign.Center,
+                    //                        fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .border(2.dp, Color.Black)
+                        .weight(2f)
+                )
+            else ComboBoxExample(StorageName.entries/*, btnActive1*/) {
+                mapForItemFields["place"] = it
+                if (mapForItemFields["name"] != "") btnActive.value = true
+            }
+        }
+        Button(
+            enabled = btnActive.value,
+            onClick = {
+                println("mapForItemFields = $mapForItemFields")
+                var lastId = id
+                if (lastId=="") lastId = dbWork.getLastId("Items")!!
+                var place: Place = Place()
+                try {
+                    place = Place(name = StorageName.valueOf(mapForItemFields["place"]!!))
+                    val newItem = Item(
+                        id = (lastId.toInt() + 1).toString(),
+                        name = mapForItemFields["name"]!!,
+                        place = place,
+                        info = mapForItemFields["info"]!!
+                    )
+                    println("new item = $newItem")
+                    onUpdate(newItem)
+                    dbWork.addObjectToCollection(newItem.id, newItem, "Items")
+//                            objList = dbWork.getAllObjectsForCollection("Items") as SnapshotStateList<Item>
+//                            isChecked = false
+                    updateDb.value = true
+                } catch (e: IllegalArgumentException) {
+                    println("error in new item")
+                    //todo сделать всплывающее сообщение с просьбой выбрать место объекта
+                }
+//                        finally {
+//                            val newItem = Item(id = lastId!!+1, name = mapForItemFields["name"]!!, place = place, info = mapForItemFields["info"]!!)
+//                            println("new item = $newItem")
+//                        }
+                //  if (newItem.name!="" && place!=)
+//                        dbWork.addObjectToCollection()
+//                        mapForItemFields.forEach { (k, v) ->
+//                            print()
+//                        }
+            },
+            modifier = Modifier.weight(1f),
+        ) {
+            Text(text = "Add")
+        }
+    }
 }
 
 @Composable
@@ -249,6 +281,7 @@ fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>, dbWo
                         listOf(
                             ContextMenuItem("Edit") {
                                 println("trying to edit item with id = ${row[0]} ")
+                                //todo вызывать MakeInputRow с редактируемым объектом
                             },
                             ContextMenuItem("Delete") {
                                 println("trying to delete item with id = ${row[0]} ")
