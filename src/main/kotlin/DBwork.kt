@@ -22,6 +22,7 @@ class DBwork {
         val collection = db.getCollection(collectionName)
         var objList = SnapshotStateList<Thing>()
         val query: Query = QueryBuilder.select(SelectResult.all()).from(DataSource.collection(collection!!))
+            .orderBy(Ordering.property("id").ascending())
 
         query.execute().use { result ->
             for (row in result) {
@@ -52,7 +53,9 @@ class DBwork {
 //        objList.forEach {
 //            println("obj: $it")
 //        }
-        return objList
+        return objList /*.sortBy {
+            it.id
+        }*/
     }
 
     fun getAllCollectionsFromDB() {
@@ -65,6 +68,7 @@ class DBwork {
 //            println("in db ${ db.count } items")
                 // Create a SQL++ query to get all documents from the collection
                 val query: Query = QueryBuilder.select(SelectResult.all()).from(DataSource.collection(collection))
+//                val query: Query = QueryBuilder.select(SelectResult.all()).from(DataSource.collection(collection)).orderBy(Ordering.property("id").ascending())
 
                 query.execute().use { result ->
                     for (row in result) {
@@ -120,6 +124,17 @@ class DBwork {
 //    val id = res.getString("id")
 //        println("last id = $id")
         return id
+    }
+
+    fun getLastIdPlusOne(collectionName: String): String? {
+        val res = getLastDocument(collectionName = "Items")
+//        println("res = ${res!!.toMap()}")
+        val items = res?.getDictionary("Items")
+//        println("items = $items")
+        val id = items!!.getString("id")!!.toInt()+1
+//    val id = res.getString("id")
+//        println("last id = $id")
+        return id.toString()
     }
 
     fun deleteObjectFromCollectiobById(id: String, collection: String) {

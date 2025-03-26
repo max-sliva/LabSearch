@@ -41,9 +41,11 @@ fun OrganiserGUI() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ComboBoxExample(entries: EnumEntries<StorageName>/*, btnActive: Boolean*/, onUpdate: (x: String) -> Unit) {
+fun ComboBoxExample(entries: EnumEntries<StorageName>, currentPlace:String/*, btnActive: Boolean*/, onUpdate: (x: String) -> Unit) {
+    println("currentPlace = $currentPlace")
     var expanded by remember { mutableStateOf(false) }
-    var selectedOption by remember { mutableStateOf("Select an option") }
+    var selectedOption by remember { mutableStateOf(if (currentPlace=="") "Select an option" else currentPlace) }
+    println("selectedOption = $selectedOption")
     val options = entries.toList()
     //todo поправить комбобокс
     Box(modifier = Modifier.wrapContentWidth()) {
@@ -96,8 +98,6 @@ fun ItemsGUI(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
 //    MaterialTheme {
     //todo доделать интерфейс для работы с БД (изменение)
     println("ItemsGUI")
-//    var objList = remember { mutableStateListOf<Item>() }
-//    var objList = mutableStateListOf<Item>()
     var updateDb = remember { mutableStateOf(true) }
     var objList = dbWork.getAllObjectsForCollection("Items") as List<Item>
 
@@ -121,34 +121,36 @@ fun ItemsGUI(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
                 Text(text = "Загрузить БД")
             }
         }
-        var isChecked by remember { mutableStateOf(false) }
+        var isChecked = remember { mutableStateOf(false) }
         var btnActive = remember { mutableStateOf(false) }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = "New item")
             Checkbox(
-                checked = isChecked,
-                onCheckedChange = { isChecked = it }
+                checked = isChecked.value,
+                onCheckedChange = { isChecked.value = it }
             )
         }
-        if (isChecked) {
+        var itemForEdit= remember { mutableStateOf( Item(name = "", place = Place(name = StorageName.CUSTOM_PLACE)))}
+        var id = remember { mutableStateOf("") }
+        if (isChecked.value) {
             var fieldNames = objList[0].getListOfFieldNames()
-//            MakeInputRow(objList, btnActive, dbWork, updateDb)
-            //todo поправить ф-ию с возвращением нового объекта и потом ее использовать для редактирования объекта
-            // добавить массив с дефолтными значениями
-            MakeInputRow(id = "", fieldNames, btnActive, dbWork, updateDb){ item->
+            MakeInputRow(id = id, itemForEdit, fieldNames, btnActive, dbWork, updateDb){ item->
                 dbWork.addObjectToCollection(item.id, item, "Items")
+                isChecked.value = false
             }
-        } else btnActive.value = false
-//            TableWork()
-        TableForItems(/*objList,*/ updateDb, dbWork)
-        //CustomTable()
+        } else {
+            btnActive.value = false
+            id.value = ""
+        }
+        TableForItems(/*objList,*/ updateDb, dbWork, isChecked, id, itemForEdit)
     }
 //    }
 }
 
 @Composable
-fun MakeInputRow(
-    id: String = "",
+fun MakeInputRow( //создаем ряд с полями для ввода данных
+    id: MutableState<String>,
+    item: MutableState<Item>?,
     fieldNames_: List<String>,
     btnActive: MutableState<Boolean>,
     dbWork: DBwork,
@@ -165,7 +167,8 @@ fun MakeInputRow(
     ) {
 //        var fieldNames = fieldNames_
         var fieldNames = fieldNames_.filter { it != "id" }
-        val mapForItemFields = remember { mutableStateMapOf("name" to "", "place" to "", "info" to "") }
+        var mapForItemFields = if (id.value=="") remember { mutableStateMapOf("name" to "", "place" to "", "info" to "") }
+                                else  remember { mutableStateMapOf("name" to item!!.value.name, "place" to item.value.place.name.toString(), "info" to item.value.info) }
         fieldNames.forEach { field ->
             if (field != "place")
                 TextField(
@@ -180,7 +183,6 @@ fun MakeInputRow(
                             println("disactivate btn")
                             btnActive.value = false
                         }
-//                                if (mapForItemFields["place"]!="" && mapForItemFields["name"]!="") println("activate btn")
                     },
                     label = { Text(field) },
                     //                        textAlign = TextAlign.Center,
@@ -189,7 +191,8 @@ fun MakeInputRow(
                         .border(2.dp, Color.Black)
                         .weight(2f)
                 )
-            else ComboBoxExample(StorageName.entries/*, btnActive1*/) {
+            else ComboBoxExample(StorageName.entries, mapForItemFields["place"]!! /*, btnActive1*/) {
+                println("----!! ComboBox place input = $it !!!!---------")
                 mapForItemFields["place"] = it
                 if (mapForItemFields["name"] != "") btnActive.value = true
             }
@@ -198,46 +201,42 @@ fun MakeInputRow(
             enabled = btnActive.value,
             onClick = {
                 println("mapForItemFields = $mapForItemFields")
-                var lastId = id
-                if (lastId=="") lastId = dbWork.getLastId("Items")!!
+                var lastId = id.value
+                if (lastId=="") lastId = dbWork.getLastIdPlusOne("Items")!! else {
+                    id.value = ""
+                    dbWork.deleteObjectFromCollectiobById(lastId, "Items")
+                }
                 var place: Place = Place()
                 try {
                     place = Place(name = StorageName.valueOf(mapForItemFields["place"]!!))
                     val newItem = Item(
-                        id = (lastId.toInt() + 1).toString(),
+                        id = lastId,
                         name = mapForItemFields["name"]!!,
                         place = place,
                         info = mapForItemFields["info"]!!
                     )
                     println("new item = $newItem")
                     onUpdate(newItem)
-                    dbWork.addObjectToCollection(newItem.id, newItem, "Items")
-//                            objList = dbWork.getAllObjectsForCollection("Items") as SnapshotStateList<Item>
-//                            isChecked = false
                     updateDb.value = true
                 } catch (e: IllegalArgumentException) {
                     println("error in new item")
                     //todo сделать всплывающее сообщение с просьбой выбрать место объекта
                 }
-//                        finally {
-//                            val newItem = Item(id = lastId!!+1, name = mapForItemFields["name"]!!, place = place, info = mapForItemFields["info"]!!)
-//                            println("new item = $newItem")
-//                        }
-                //  if (newItem.name!="" && place!=)
-//                        dbWork.addObjectToCollection()
-//                        mapForItemFields.forEach { (k, v) ->
-//                            print()
-//                        }
             },
             modifier = Modifier.weight(1f),
         ) {
-            Text(text = "Add")
+            if (id.value=="") Text(text = "Add") else Text("Replace")
         }
     }
 }
 
 @Composable
-fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>, dbWork: DBwork) {
+fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>,
+                  dbWork: DBwork,
+                  isChecked: MutableState<Boolean>,
+                  id: MutableState<String>,
+                  itemForEdit: MutableState<Item>?
+) {
     val itemColumns = 4
     var objList = remember { mutableStateListOf<Item>() }
     dbWork.getAllObjectsForCollection("Items").also { objList = it as SnapshotStateList<Item> }
@@ -246,6 +245,7 @@ fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>, dbWo
         updateDb.value = false
         println("db updated")
     }
+//    var borderColor by remember{ mutableStateOf(Color(0xff1e63b2)) }
     LazyVerticalGrid(
         columns = GridCells.Fixed(itemColumns),
 //        columns = GridCells.Adaptive(20.dp),
@@ -276,43 +276,35 @@ fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>, dbWo
             val row = obj.getListOfValues()
             items(row.size) { index ->
                 ContextMenuArea(
-        //todo доделать пункт для редактирования
                     items = {
                         listOf(
                             ContextMenuItem("Edit") {
                                 println("trying to edit item with id = ${row[0]} ")
-                                //todo вызывать MakeInputRow с редактируемым объектом
+                                isChecked.value = true
+                                id.value = row[0]
+                                itemForEdit!!.value = obj
+//                                borderColor = Color.Green
                             },
                             ContextMenuItem("Delete") {
                                 println("trying to delete item with id = ${row[0]} ")
                                 val delId = row[0]
+                                //todo сделать alert с предупреждением об удалении
                                 dbWork.deleteObjectFromCollectiobById(delId, "Items")
                                 updateDb.value = true
                             }
                         )
                     }
                 ) {
+                    val borderColor = if (row[0]==id.value) Color.Green  else Color(0xff1e63b2)
                     Text(
                         text = row[index],
                         textAlign = TextAlign.Center,
                         modifier = Modifier
 //                        .padding(start=20.dp)
-                            .border(2.dp, Color(0xff1e63b2))
+                            .border(2.dp, borderColor)
                     )
                 }
             }
-//            item {
-//                Button(
-//                    onClick = {
-//                        println("trying to delete item with id = ${row[0]} ")
-//                    }
-//                ){
-//                    Icon(
-//                        imageVector = Icons.Default.Close,
-//                        contentDescription = "Delete Icon"
-//                    )
-//                }
-//            }
         }
     }
 }
