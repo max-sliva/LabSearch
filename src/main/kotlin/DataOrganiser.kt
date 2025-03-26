@@ -1,3 +1,7 @@
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.ContextMenuArea
 import androidx.compose.foundation.layout.*
@@ -295,13 +299,34 @@ fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>,
                         )
                     }
                 ) {
-                    val borderColor = if (row[0]==id.value) Color.Green  else Color(0xff1e63b2)
+//                    val borderColor = if (row[0]==id.value) Color.Green  else Color(0xff1e63b2)
+                    val animatedColor by animateColorAsState(
+                        targetValue =if (row[0]==id.value) Color.Green  else Color(0xff1e63b2),
+                        animationSpec = tween(durationMillis = 3000, easing = LinearEasing)
+//                        animationSpec = finiteRepeatable(durationMillis = 3000, easing = LinearEasing)
+                    )
+                    val colorTransition = updateTransition(row[0]==id.value, label = "pulseTransition")
+
+                    val borderColor by colorTransition.animateColor(
+                        transitionSpec = {
+                            repeatable(
+                                iterations = 4,  // 3 full cycles
+                                animation = tween(1000),
+                                repeatMode = RepeatMode.Reverse
+                            )
+                        },
+                        label = "colorAnimation"
+                    ) { pulsing ->
+                        if (pulsing) Color.Green else Color(0xff1e63b2)
+                    }
+
                     Text(
                         text = row[index],
                         textAlign = TextAlign.Center,
                         modifier = Modifier
 //                        .padding(start=20.dp)
                             .border(2.dp, borderColor)
+//                            .border(2.dp, color = animatedColor,)
                     )
                 }
             }
