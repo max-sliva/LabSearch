@@ -1,24 +1,34 @@
-import androidx.compose.animation.Animatable
+//import androidx.compose.material3.*
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.ContextMenuArea
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+//import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 //import androidx.compose.foundation.layout.RowScopeInstance.weight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+//import androidx.compose.material3.ExperimentalMaterial3Api
+//import androidx.compose.material3.TooltipBox
+//import androidx.compose.material3.TooltipDefaults
+//import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
@@ -45,10 +55,14 @@ fun OrganiserGUI() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ComboBoxExample(entries: EnumEntries<StorageName>, currentPlace:String/*, btnActive: Boolean*/, onUpdate: (x: String) -> Unit) {
+fun ComboBoxExample(
+    entries: EnumEntries<StorageName>,
+    currentPlace: String/*, btnActive: Boolean*/,
+    onUpdate: (x: String) -> Unit
+) {
     println("currentPlace = $currentPlace")
     var expanded by remember { mutableStateOf(false) }
-    var selectedOption by remember { mutableStateOf(if (currentPlace=="") "Select an option" else currentPlace) }
+    var selectedOption by remember { mutableStateOf(if (currentPlace == "") "Select an option" else currentPlace) }
     println("selectedOption = $selectedOption")
     val options = entries.toList()
     //todo поправить комбобокс
@@ -100,7 +114,6 @@ fun ComboBoxExample(entries: EnumEntries<StorageName>, currentPlace:String/*, bt
 @Composable
 fun ItemsGUI(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
 //    MaterialTheme {
-    //todo доделать интерфейс для работы с БД (изменение)
     println("ItemsGUI")
     var updateDb = remember { mutableStateOf(true) }
     var objList = dbWork.getAllObjectsForCollection("Items") as List<Item>
@@ -134,11 +147,11 @@ fun ItemsGUI(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
                 onCheckedChange = { isChecked.value = it }
             )
         }
-        var itemForEdit= remember { mutableStateOf( Item(name = "", place = Place(name = StorageName.CUSTOM_PLACE)))}
+        var itemForEdit = remember { mutableStateOf(Item(name = "", place = Place(name = StorageName.CUSTOM_PLACE))) }
         var id = remember { mutableStateOf("") }
         if (isChecked.value) {
             var fieldNames = objList[0].getListOfFieldNames()
-            MakeInputRow(id = id, itemForEdit, fieldNames, btnActive, dbWork, updateDb){ item->
+            MakeInputRow(id = id, itemForEdit, fieldNames, btnActive, dbWork, updateDb) { item ->
                 dbWork.addObjectToCollection(item.id, item, "Items")
                 isChecked.value = false
             }
@@ -151,6 +164,8 @@ fun ItemsGUI(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
 //    }
 }
 
+//@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MakeInputRow( //создаем ряд с полями для ввода данных
     id: MutableState<String>,
@@ -171,8 +186,15 @@ fun MakeInputRow( //создаем ряд с полями для ввода да
     ) {
 //        var fieldNames = fieldNames_
         var fieldNames = fieldNames_.filter { it != "id" }
-        var mapForItemFields = if (id.value=="") remember { mutableStateMapOf("name" to "", "place" to "", "info" to "") }
-                                else  remember { mutableStateMapOf("name" to item!!.value.name, "place" to item.value.place.name.toString(), "info" to item.value.info) }
+        var mapForItemFields =
+            if (id.value == "") remember { mutableStateMapOf("name" to "", "place" to "", "info" to "") }
+            else remember {
+                mutableStateMapOf(
+                    "name" to item!!.value.name,
+                    "place" to item.value.place.name.toString(),
+                    "info" to item.value.info
+                )
+            }
         fieldNames.forEach { field ->
             if (field != "place")
                 TextField(
@@ -201,36 +223,63 @@ fun MakeInputRow( //создаем ряд с полями для ввода да
                 if (mapForItemFields["name"] != "") btnActive.value = true
             }
         }
-        Button(
-            enabled = btnActive.value,
-            onClick = {
-                println("mapForItemFields = $mapForItemFields")
-                var lastId = id.value
-                if (lastId=="") lastId = dbWork.getLastIdPlusOne("Items")!! else {
-                    id.value = ""
-                    dbWork.deleteObjectFromCollectiobById(lastId, "Items")
-                }
-                var place: Place = Place()
-                try {
-                    place = Place(name = StorageName.valueOf(mapForItemFields["place"]!!))
-                    val newItem = Item(
-                        id = lastId,
-                        name = mapForItemFields["name"]!!,
-                        place = place,
-                        info = mapForItemFields["info"]!!
+//        TooltipBox(
+//            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+//            tooltip = { Text("Input name and place!") },
+//            state = rememberTooltipState()
+//        ) {
+        var showTooltip by remember { mutableStateOf(false) }
+        TooltipArea(
+            tooltip = {
+                // Composable tooltip content:
+                Surface(
+                    modifier = Modifier.shadow(4.dp),
+                    color = Color(255, 255, 210),
+                    shape = RoundedCornerShape(4.dp)
+                ) {
+                    Text(
+                        text = "Input name and place!",
+                        modifier = Modifier.padding(10.dp)
                     )
-                    println("new item = $newItem")
-                    onUpdate(newItem)
-                    updateDb.value = true
-                } catch (e: IllegalArgumentException) {
-                    println("error in new item")
-                    //todo сделать всплывающее сообщение с просьбой выбрать место объекта
                 }
             },
-            modifier = Modifier.weight(1f),
-        ) {
-            if (id.value=="") Text(text = "Add") else Text("Replace")
+            modifier = Modifier.padding(start = 40.dp),
+            delayMillis = 600, // In milliseconds
+            tooltipPlacement = TooltipPlacement.CursorPoint(
+                alignment = Alignment.BottomEnd,
+                offset = DpOffset.Zero // Tooltip offset
+            )
+        ){
+            Button(
+                enabled = btnActive.value,
+                onClick = {
+                    println("mapForItemFields = $mapForItemFields")
+                    var lastId = id.value
+                    if (lastId == "") lastId = dbWork.getLastIdPlusOne("Items")!! else {
+                        id.value = ""
+                        dbWork.deleteObjectFromCollectiobById(lastId, "Items")
+                    }
+                    try {
+                        val place = Place(name = StorageName.valueOf(mapForItemFields["place"]!!))
+                        val newItem = Item(
+                            id = lastId,
+                            name = mapForItemFields["name"]!!,
+                            place = place,
+                            info = mapForItemFields["info"]!!
+                        )
+                        println("new item = $newItem")
+                        onUpdate(newItem)
+                        updateDb.value = true
+                    } catch (e: IllegalArgumentException) {
+                        println("error in new item")
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                if (id.value == "") Text(text = "Add") else Text("Replace")
+            }
         }
+
     }
 }
 
@@ -249,6 +298,42 @@ fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>,
         updateDb.value = false
         println("db updated")
     }
+    val showDialog = remember { mutableStateOf(false) }
+    val delOk = remember { mutableStateOf(false) }
+    var delId by remember { mutableStateOf("") }
+    if (showDialog.value)
+        AlertDialog(
+            onDismissRequest = {
+                // Dismiss when user clicks outside or presses back
+                showDialog.value = false
+            },
+            title = { Text("Confirmation") },
+            text = { Text("Are you sure you want to delete?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        // Handle OK action
+                        delOk.value = true
+                        showDialog.value = false
+                        dbWork.deleteObjectFromCollectiobById(delId, "Items")
+                        updateDb.value = true
+                        println("deleted item with id = $delId")
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        // Handle Cancel action
+                        showDialog.value = false
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
 //    var borderColor by remember{ mutableStateOf(Color(0xff1e63b2)) }
     LazyVerticalGrid(
         columns = GridCells.Fixed(itemColumns),
@@ -291,21 +376,19 @@ fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>,
                             },
                             ContextMenuItem("Delete") {
                                 println("trying to delete item with id = ${row[0]} ")
-                                val delId = row[0]
-                                //todo сделать alert с предупреждением об удалении
-                                dbWork.deleteObjectFromCollectiobById(delId, "Items")
-                                updateDb.value = true
+                                delId = row[0]
+                                showDialog.value = true
                             }
                         )
                     }
                 ) {
 //                    val borderColor = if (row[0]==id.value) Color.Green  else Color(0xff1e63b2)
                     val animatedColor by animateColorAsState(
-                        targetValue =if (row[0]==id.value) Color.Green  else Color(0xff1e63b2),
+                        targetValue = if (row[0] == id.value) Color.Green else Color(0xff1e63b2),
                         animationSpec = tween(durationMillis = 3000, easing = LinearEasing)
 //                        animationSpec = finiteRepeatable(durationMillis = 3000, easing = LinearEasing)
                     )
-                    val colorTransition = updateTransition(row[0]==id.value, label = "pulseTransition")
+                    val colorTransition = updateTransition(row[0] == id.value, label = "pulseTransition")
 
                     val borderColor by colorTransition.animateColor(
                         transitionSpec = {

@@ -30,6 +30,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.8.9")
 //    implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(kotlin("reflect"))
+//    implementation ("androidx.compose.material3:material3:1.2.0")
 }
 
 //to make exe run in terminal:
