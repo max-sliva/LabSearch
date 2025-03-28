@@ -4,8 +4,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.ContextMenuArea
-import androidx.compose.foundation.hoverable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 //import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 //import androidx.compose.foundation.layout.RowScopeInstance.weight
@@ -49,8 +47,18 @@ fun OrganiserGUI(dbWork: DBwork) {
 //            horizontalAlignment = Alignment.CenterHorizontally, //по центру горизонтально
         ) {
             //todo сделать возможность кликом по месту на картинке посмотреть, какие там объекты, и добавить, или импортировать из файла
-            App()
-            TabPane(/*objList,*/ dbWork)
+            Column(
+                modifier = Modifier
+                    .weight(2f)
+            ){
+                App()
+            }
+            Column(
+                modifier = Modifier
+                    .weight(3f)
+            ){
+                TabPane(/*objList,*/ dbWork)
+            }
         }
     }
 }

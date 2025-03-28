@@ -47,7 +47,7 @@ fun searchItem( //возвращает нужную картинку для ис
 
 @Composable
 @Preview
-fun App() {
+fun App(rowScope: RowScope? = null) {
     var text by remember { mutableStateOf("Найти") }
     var searchValue by remember { //объект для работы с текстом, для TextField
         mutableStateOf("") //его начальное значение
@@ -156,9 +156,11 @@ fun App() {
 //                painter = painterResource(imageSrc),
 //                painter = imageReso,
                     contentDescription = "",
-                    contentScale = ContentScale.Fit,
+//                    contentScale = ContentScale.Fit,
+                    contentScale = ContentScale.FillWidth,
                     modifier = Modifier
-                        .wrapContentWidth()
+//                        .wrapContentWidth()
+                        .wrapContentSize()
                         .pointerInput(Unit) {
                             detectTapGestures { offset ->
                                 val coords = offset // backShelf: upper left x=355.0  y=33.0,   lowe right x=408.0  y=121.0
