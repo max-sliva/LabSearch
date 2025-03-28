@@ -42,13 +42,15 @@ import kotlin.enums.EnumEntries
 //var objList = remember { mutableListOf(Thing()) }
 
 @Composable
-fun OrganiserGUI() {
+fun OrganiserGUI(dbWork: DBwork) {
     MaterialTheme {
-        Column(
+        Row(
             modifier = Modifier.fillMaxSize(), //заполняем всё доступное пространство
-            horizontalAlignment = Alignment.CenterHorizontally, //по центру горизонтально
+//            horizontalAlignment = Alignment.CenterHorizontally, //по центру горизонтально
         ) {
             //todo сделать возможность кликом по месту на картинке посмотреть, какие там объекты, и добавить, или импортировать из файла
+            App()
+            TabPane(/*objList,*/ dbWork)
         }
     }
 }
@@ -347,6 +349,7 @@ fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>,
         var fieldNames = objList[0].getListOfFieldNames()
 //        fieldNames = fieldNames.plus("")
 //        val fieldNames = objList2[0].getListOfFieldNames()
+        //todo вынести строку с названиями полей за пределы таблицы, чтобы они не прокручивались
         items(fieldNames.size) { index ->
             Text(
                 text = fieldNames[index],
@@ -502,6 +505,7 @@ fun main() = application {
         onCloseRequest = ::exitApplication
     ) {
 //        ItemsGUI(objList)
-        TabPane(/*objList,*/ dbWork)
+        OrganiserGUI(dbWork)
+//        TabPane(/*objList,*/ dbWork)
     }
 }

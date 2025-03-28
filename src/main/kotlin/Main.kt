@@ -79,7 +79,11 @@ fun App() {
         )
     MaterialTheme {
         Column(
-            modifier = Modifier.fillMaxSize(), //заполняем всё доступное пространство
+            modifier = Modifier
+//                .fillMaxSize() //заполняем всё доступное пространство
+                .wrapContentWidth()
+//                .weight(2f)
+            ,
             horizontalAlignment = Alignment.CenterHorizontally, //по центру горизонтально
 //            verticalArrangement = Arrangement.Center //и вертикально
         ) { // вертикальная колонка для размещения объектов
