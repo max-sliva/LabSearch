@@ -47,7 +47,7 @@ fun searchItem( //возвращает нужную картинку для ис
 
 @Composable
 @Preview
-fun App(rowScope: RowScope? = null) {
+fun LabRenderView(rowScope: RowScope? = null) {
     var text by remember { mutableStateOf("Найти") }
     var searchValue by remember { //объект для работы с текстом, для TextField
         mutableStateOf("") //его начальное значение
@@ -237,6 +237,6 @@ fun main() = application {
         state = windowState,
         onCloseRequest = ::exitApplication
     ) {
-        App()
+        LabRenderView()
     }
 }

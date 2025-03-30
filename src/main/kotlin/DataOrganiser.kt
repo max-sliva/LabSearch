@@ -51,7 +51,7 @@ fun OrganiserGUI(dbWork: DBwork) {
                 modifier = Modifier
                     .weight(2f)
             ){
-                App()
+                LabRenderView()
             }
             Column(
                 modifier = Modifier
