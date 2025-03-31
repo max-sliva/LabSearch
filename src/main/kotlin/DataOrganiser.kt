@@ -27,11 +27,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.WindowPosition
-import androidx.compose.ui.window.application
-import androidx.compose.ui.window.rememberWindowState
+import androidx.compose.ui.window.*
 import kotlin.enums.EnumEntries
 
 //import kotlin.reflect.full.memberProperties
@@ -41,23 +39,31 @@ import kotlin.enums.EnumEntries
 
 @Composable
 fun OrganiserGUI(dbWork: DBwork) {
+    var objList = remember { mutableStateListOf<Thing>() }
+    val tempObjList = dbWork.getAllObjectsForCollection("Items")
+    objList.addAll(tempObjList)
     MaterialTheme {
         Row(
             modifier = Modifier.fillMaxSize(), //заполняем всё доступное пространство
 //            horizontalAlignment = Alignment.CenterHorizontally, //по центру горизонтально
         ) {
-            //todo сделать возможность кликом по месту на картинке посмотреть, какие там объекты, и добавить, или импортировать из файла
+            //todo подумать над импортом из файла
             Column(
                 modifier = Modifier
                     .weight(2f)
             ){
-                LabRenderView()
+                LabRenderView(){
+                    val itemsInPlace = if (it!=StorageName.CUSTOM_PLACE) dbWork.getAllObjectsForPlace("Items", it) else dbWork.getAllObjectsForCollection("Items")
+                    objList.clear()
+                    objList.addAll(itemsInPlace)
+                    println("itemsInPlace = $objList")
+                }
             }
             Column(
                 modifier = Modifier
                     .weight(3f)
             ){
-                TabPane(/*objList,*/ dbWork)
+                TabPane(objList, dbWork)
             }
         }
     }
@@ -122,11 +128,11 @@ fun ComboBoxExample(
 }
 
 @Composable
-fun ItemsGUI(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
+fun ItemsGUI(objList: SnapshotStateList<Item>, dbWork: DBwork) {
 //    MaterialTheme {
     println("ItemsGUI")
     var updateDb = remember { mutableStateOf(true) }
-    var objList = dbWork.getAllObjectsForCollection("Items") as List<Item>
+//    var objList = dbWork.getAllObjectsForCollection("Items") as List<Item>
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -169,7 +175,7 @@ fun ItemsGUI(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
             btnActive.value = false
             id.value = ""
         }
-        TableForItems(/*objList,*/ updateDb, dbWork, isChecked, id, itemForEdit)
+        TableForItems(objList, updateDb, dbWork, isChecked, id, itemForEdit)
     }
 //    }
 }
@@ -294,17 +300,22 @@ fun MakeInputRow( //создаем ряд с полями для ввода да
 }
 
 @Composable
-fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>,
+fun TableForItems(
+//                  objList: MutableList<Item>,
+                  objList:SnapshotStateList<Item>,
+                  updateDb: MutableState<Boolean>,
                   dbWork: DBwork,
                   isChecked: MutableState<Boolean>,
                   id: MutableState<String>,
                   itemForEdit: MutableState<Item>?
 ) {
     val itemColumns = 4
-    var objList = remember { mutableStateListOf<Item>() }
-    dbWork.getAllObjectsForCollection("Items").also { objList = it as SnapshotStateList<Item> }
+//    var objList = remember { mutableStateListOf<Item>() }
+//    dbWork.getAllObjectsForCollection("Items").also { objList = it as SnapshotStateList<Item> }
     if (updateDb.value) {
-        objList = dbWork.getAllObjectsForCollection("Items") as SnapshotStateList<Item>
+        objList.clear()
+        val tempList = dbWork.getAllObjectsForCollection("Items") as SnapshotStateList<Item>
+        objList.addAll(tempList)
         updateDb.value = false
         println("db updated")
     }
@@ -354,74 +365,76 @@ fun TableForItems(/*objList: List<Item>,*/ updateDb: MutableState<Boolean>,
         modifier = Modifier
             .border(2.dp, Color.Black)
     ) {
-        var fieldNames = objList[0].getListOfFieldNames()
+        if (objList.size>0) {
+            var fieldNames = objList[0].getListOfFieldNames()
 //        fieldNames = fieldNames.plus("")
 //        val fieldNames = objList2[0].getListOfFieldNames()
-        //todo вынести строку с названиями полей за пределы таблицы, чтобы они не прокручивались
-        items(fieldNames.size) { index ->
-            Text(
-                text = fieldNames[index],
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .border(2.dp, Color.Black)
+            //todo вынести строку с названиями полей за пределы таблицы, чтобы они не прокручивались
+            items(fieldNames.size) { index ->
+                Text(
+                    text = fieldNames[index],
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .border(2.dp, Color.Black)
 //                    .weight((index+1).toFloat())
 //                    .weight(5f)
-            )
-        }
-        println("TableForItems updated")
-        objList.forEach { obj ->
+                )
+            }
+            println("TableForItems updated")
+            objList.forEach { obj ->
 //        objList2.forEach { obj ->
 //            println("in table obj = ${obj.getListOfValues()}")
-            val row = obj.getListOfValues()
-            items(row.size) { index ->
-                ContextMenuArea(
-                    items = {
-                        listOf(
-                            ContextMenuItem("Edit") {
-                                println("trying to edit item with id = ${row[0]} ")
-                                isChecked.value = true
-                                id.value = row[0]
-                                itemForEdit!!.value = obj
+                val row = obj.getListOfValues()
+                items(row.size) { index ->
+                    ContextMenuArea(
+                        items = {
+                            listOf(
+                                ContextMenuItem("Edit") {
+                                    println("trying to edit item with id = ${row[0]} ")
+                                    isChecked.value = true
+                                    id.value = row[0]
+                                    itemForEdit!!.value = obj
 //                                borderColor = Color.Green
+                                },
+                                ContextMenuItem("Delete") {
+                                    println("trying to delete item with id = ${row[0]} ")
+                                    delId = row[0]
+                                    showDialog.value = true
+                                }
+                            )
+                        }
+                    ) {
+//                    val borderColor = if (row[0]==id.value) Color.Green  else Color(0xff1e63b2)
+                        val animatedColor by animateColorAsState(
+                            targetValue = if (row[0] == id.value) Color.Green else Color(0xff1e63b2),
+                            animationSpec = tween(durationMillis = 3000, easing = LinearEasing)
+//                        animationSpec = finiteRepeatable(durationMillis = 3000, easing = LinearEasing)
+                        )
+                        val colorTransition = updateTransition(row[0] == id.value, label = "pulseTransition")
+                        //todo разобраться, почему анимация приводит к сбросу текущих объектов к базовой таблице со всеми объектами
+                        val borderColor by colorTransition.animateColor(
+                            transitionSpec = {
+                                repeatable(
+                                    iterations = 4,  // 3 full cycles
+                                    animation = tween(1000),
+                                    repeatMode = RepeatMode.Reverse
+                                )
                             },
-                            ContextMenuItem("Delete") {
-                                println("trying to delete item with id = ${row[0]} ")
-                                delId = row[0]
-                                showDialog.value = true
-                            }
+                            label = "colorAnimation"
+                        ) { pulsing ->
+                            if (pulsing) Color.Green else Color(0xff1e63b2)
+                        }
+
+                        Text(
+                            text = row[index],
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+//                        .padding(start=20.dp)
+                                .border(2.dp, borderColor)
+//                            .border(2.dp, color = animatedColor,)
                         )
                     }
-                ) {
-//                    val borderColor = if (row[0]==id.value) Color.Green  else Color(0xff1e63b2)
-                    val animatedColor by animateColorAsState(
-                        targetValue = if (row[0] == id.value) Color.Green else Color(0xff1e63b2),
-                        animationSpec = tween(durationMillis = 3000, easing = LinearEasing)
-//                        animationSpec = finiteRepeatable(durationMillis = 3000, easing = LinearEasing)
-                    )
-                    val colorTransition = updateTransition(row[0] == id.value, label = "pulseTransition")
-
-                    val borderColor by colorTransition.animateColor(
-                        transitionSpec = {
-                            repeatable(
-                                iterations = 4,  // 3 full cycles
-                                animation = tween(1000),
-                                repeatMode = RepeatMode.Reverse
-                            )
-                        },
-                        label = "colorAnimation"
-                    ) { pulsing ->
-                        if (pulsing) Color.Green else Color(0xff1e63b2)
-                    }
-
-                    Text(
-                        text = row[index],
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-//                        .padding(start=20.dp)
-                            .border(2.dp, borderColor)
-//                            .border(2.dp, color = animatedColor,)
-                    )
                 }
             }
         }
@@ -461,7 +474,7 @@ fun PlacesGUI() {
 //}
 
 @Composable
-fun TabPane(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
+fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork) {
     //todo сделать нормальное оформление табов
     MaterialTheme {
         var tabIndex by remember { mutableStateOf(0) }
@@ -483,7 +496,7 @@ fun TabPane(/*objList: MutableList<Item>,*/ dbWork: DBwork) {
             }
 
             when (tabIndex) {
-                0 -> ItemsGUI(/*objList,*/ dbWork)
+                0 -> ItemsGUI(objList as SnapshotStateList<Item>, dbWork)
                 1 -> PlacesGUI()
 //            2 -> SettingsScreen()
             }
@@ -506,11 +519,14 @@ fun main() = application {
     println("last id = $id")
 
     val windowState = rememberWindowState(
-        position = WindowPosition(Alignment.Center)
+        position = WindowPosition(Alignment.Center),
+        size = DpSize(1400.dp, 600.dp)
+
     )
     Window(
         state = windowState,
-        onCloseRequest = ::exitApplication
+        onCloseRequest = ::exitApplication,
+
     ) {
 //        ItemsGUI(objList)
         OrganiserGUI(dbWork)

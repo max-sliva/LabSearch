@@ -58,6 +58,14 @@ class DBwork {
         }*/
     }
 
+    fun getAllObjectsForPlace(collectionName: String, place: StorageName): List<Thing> {
+//        var objList = SnapshotStateList<Thing>()
+        val listForCollection = getAllObjectsForCollection(collectionName)
+        val objList = listForCollection.filter {(it as Item).place.name == place}
+
+        return objList
+    }
+
     fun getAllCollectionsFromDB() {
         db.scopes.forEach { scope ->
             println("Scope :: ${scope.name}")

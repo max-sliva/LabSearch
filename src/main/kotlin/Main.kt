@@ -47,7 +47,7 @@ fun searchItem( //возвращает нужную картинку для ис
 
 @Composable
 @Preview
-fun LabRenderView(rowScope: RowScope? = null) {
+fun LabRenderView(rowScope: RowScope? = null,  onPlaceSelect: (place: StorageName) -> Unit) {
     var text by remember { mutableStateOf("Найти") }
     var searchValue by remember { //объект для работы с текстом, для TextField
         mutableStateOf("") //его начальное значение
@@ -150,7 +150,7 @@ fun LabRenderView(rowScope: RowScope? = null) {
                 }
             }
             val file = loadImageFrom("src/main/resources/$imageSrc")
-            Row(){
+//            Row(){
                 Image(
                     bitmap = file,
 //                painter = painterResource(imageSrc),
@@ -194,6 +194,7 @@ fun LabRenderView(rowScope: RowScope? = null) {
                                     }
                                     else -> {StorageName.CUSTOM_PLACE}
                                 }
+                                onPlaceSelect(place)
                                 imageSrc = storageNameToPngMap[place]!!
                                 curPlaceItems = things?.filter {
                                     it is Item && it.place.name.toString() == place.toString()
@@ -209,17 +210,17 @@ fun LabRenderView(rowScope: RowScope? = null) {
                             imageRatio = 784.0 / size.width //получаем коэффициент изменения размера картинки
                         }
                 )
-                LazyColumn (modifier = Modifier
-                    .wrapContentWidth()
-                ) {
-                    items(curPlaceItems){thing->
-                        println("item in LazyColumn: ${thing}")
-                        Text(
-                            text = if (thing is Item) thing.name else ""
-                        )
-                    }
-                }
-            }
+//                LazyColumn (modifier = Modifier
+//                    .wrapContentWidth()
+//                ) {
+//                    items(curPlaceItems){thing->
+//                        println("item in LazyColumn: ${thing}")
+//                        Text(
+//                            text = if (thing is Item) thing.name else ""
+//                        )
+//                    }
+//                }
+//            }
         }
     }
 }
@@ -237,6 +238,8 @@ fun main() = application {
         state = windowState,
         onCloseRequest = ::exitApplication
     ) {
-        LabRenderView()
+        LabRenderView(){
+
+        }
     }
 }
