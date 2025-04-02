@@ -6,6 +6,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.ContextMenuArea
 //import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 //import androidx.compose.foundation.layout.RowScopeInstance.weight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -40,6 +41,7 @@ import kotlin.enums.EnumEntries
 @Composable
 fun OrganiserGUI(dbWork: DBwork) {
     var objList = remember { mutableStateListOf<Thing>() }
+    val curPlace = remember { mutableStateOf(StorageName.CUSTOM_PLACE) }
     val tempObjList = dbWork.getAllObjectsForCollection("Items")
     objList.addAll(tempObjList)
     MaterialTheme {
@@ -51,9 +53,13 @@ fun OrganiserGUI(dbWork: DBwork) {
             Column(
                 modifier = Modifier
                     .weight(2f)
-            ){
-                LabRenderView(){
-                    val itemsInPlace = if (it!=StorageName.CUSTOM_PLACE) dbWork.getAllObjectsForPlace("Items", it) else dbWork.getAllObjectsForCollection("Items")
+            ) {
+                LabRenderView() {
+                    curPlace.value = it
+                    val itemsInPlace = if (it != StorageName.CUSTOM_PLACE) dbWork.getAllObjectsForPlace(
+                        "Items",
+                        it
+                    ) else dbWork.getAllObjectsForCollection("Items")
                     objList.clear()
                     objList.addAll(itemsInPlace)
                     println("itemsInPlace = $objList")
@@ -62,8 +68,8 @@ fun OrganiserGUI(dbWork: DBwork) {
             Column(
                 modifier = Modifier
                     .weight(3f)
-            ){
-                TabPane(objList, dbWork)
+            ) {
+                TabPane(objList, dbWork, curPlace)
             }
         }
     }
@@ -128,7 +134,7 @@ fun ComboBoxExample(
 }
 
 @Composable
-fun ItemsGUI(objList: SnapshotStateList<Item>, dbWork: DBwork) {
+fun ItemsGUI(objList: SnapshotStateList<Item>, dbWork: DBwork, curPlace: MutableState<StorageName>) {
 //    MaterialTheme {
     println("ItemsGUI")
     var updateDb = remember { mutableStateOf(true) }
@@ -175,7 +181,7 @@ fun ItemsGUI(objList: SnapshotStateList<Item>, dbWork: DBwork) {
             btnActive.value = false
             id.value = ""
         }
-        TableForItems(objList, updateDb, dbWork, isChecked, id, itemForEdit)
+        TableForItems(objList, updateDb, dbWork, isChecked, id, itemForEdit, curPlace)
     }
 //    }
 }
@@ -265,7 +271,7 @@ fun MakeInputRow( //создаем ряд с полями для ввода да
                 alignment = Alignment.BottomEnd,
                 offset = DpOffset.Zero // Tooltip offset
             )
-        ){
+        ) {
             Button(
                 enabled = btnActive.value,
                 onClick = {
@@ -302,20 +308,26 @@ fun MakeInputRow( //создаем ряд с полями для ввода да
 @Composable
 fun TableForItems(
 //                  objList: MutableList<Item>,
-                  objList:SnapshotStateList<Item>,
-                  updateDb: MutableState<Boolean>,
-                  dbWork: DBwork,
-                  isChecked: MutableState<Boolean>,
-                  id: MutableState<String>,
-                  itemForEdit: MutableState<Item>?
+    objList: SnapshotStateList<Item>,
+    updateDb: MutableState<Boolean>,
+    dbWork: DBwork,
+    isChecked: MutableState<Boolean>,
+    id: MutableState<String>,
+    itemForEdit: MutableState<Item>?,
+    curPlace: MutableState<StorageName>
 ) {
     val itemColumns = 4
 //    var objList = remember { mutableStateListOf<Item>() }
 //    dbWork.getAllObjectsForCollection("Items").also { objList = it as SnapshotStateList<Item> }
     if (updateDb.value) {
         objList.clear()
-        val tempList = dbWork.getAllObjectsForCollection("Items") as SnapshotStateList<Item>
-        objList.addAll(tempList)
+//        val tempList = dbWork.getAllObjectsForCollection("Items") as SnapshotStateList<Item>
+//        val tempList
+        val tempList = if (curPlace.value != StorageName.CUSTOM_PLACE) dbWork.getAllObjectsForPlace(
+            "Items",
+            curPlace.value
+        ) else dbWork.getAllObjectsForCollection("Items")
+        objList.addAll(tempList as Collection<Item>)
         updateDb.value = false
         println("db updated")
     }
@@ -325,7 +337,6 @@ fun TableForItems(
     if (showDialog.value)
         AlertDialog(
             onDismissRequest = {
-                // Dismiss when user clicks outside or presses back
                 showDialog.value = false
             },
             title = { Text("Confirmation") },
@@ -356,6 +367,41 @@ fun TableForItems(
             }
         )
 //    var borderColor by remember{ mutableStateOf(Color(0xff1e63b2)) }
+    val fieldNames = objList[0].getListOfFieldNames()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dp)
+            .border(2.dp, Color.Black),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        //todo сделать контекстное меню, чтобы убирать/включать нужные столбцы
+        fieldNames.forEach {
+//            ContextMenuArea(
+//                items = {
+//                    listOf(
+//                        ContextMenuItem("Hide") {
+//
+//                        },
+//                        ContextMenuItem("Show all") {
+//
+//                        }
+//                    )
+//                },
+//
+//            ) {
+                Text(
+                    text = it,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .border(2.dp, Color.Black)
+                        .wrapContentWidth()
+                        .weight(5f)
+                )
+//            }
+        }
+    }
     LazyVerticalGrid(
         columns = GridCells.Fixed(itemColumns),
 //        columns = GridCells.Adaptive(20.dp),
@@ -364,27 +410,11 @@ fun TableForItems(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier
             .border(2.dp, Color.Black)
+            .padding(4.dp)
     ) {
-        if (objList.size>0) {
-            var fieldNames = objList[0].getListOfFieldNames()
-//        fieldNames = fieldNames.plus("")
-//        val fieldNames = objList2[0].getListOfFieldNames()
-            //todo вынести строку с названиями полей за пределы таблицы, чтобы они не прокручивались
-            items(fieldNames.size) { index ->
-                Text(
-                    text = fieldNames[index],
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .border(2.dp, Color.Black)
-//                    .weight((index+1).toFloat())
-//                    .weight(5f)
-                )
-            }
+        if (objList.size > 0) {
             println("TableForItems updated")
             objList.forEach { obj ->
-//        objList2.forEach { obj ->
-//            println("in table obj = ${obj.getListOfValues()}")
                 val row = obj.getListOfValues()
                 items(row.size) { index ->
                     ContextMenuArea(
@@ -412,7 +442,6 @@ fun TableForItems(
 //                        animationSpec = finiteRepeatable(durationMillis = 3000, easing = LinearEasing)
                         )
                         val colorTransition = updateTransition(row[0] == id.value, label = "pulseTransition")
-                        //todo разобраться, почему анимация приводит к сбросу текущих объектов к базовой таблице со всеми объектами
                         val borderColor by colorTransition.animateColor(
                             transitionSpec = {
                                 repeatable(
@@ -474,7 +503,7 @@ fun PlacesGUI() {
 //}
 
 @Composable
-fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork) {
+fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: MutableState<StorageName>) {
     //todo сделать нормальное оформление табов
     MaterialTheme {
         var tabIndex by remember { mutableStateOf(0) }
@@ -496,7 +525,7 @@ fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork) {
             }
 
             when (tabIndex) {
-                0 -> ItemsGUI(objList as SnapshotStateList<Item>, dbWork)
+                0 -> ItemsGUI(objList as SnapshotStateList<Item>, dbWork, curPlace)
                 1 -> PlacesGUI()
 //            2 -> SettingsScreen()
             }
@@ -527,7 +556,7 @@ fun main() = application {
         state = windowState,
         onCloseRequest = ::exitApplication,
 
-    ) {
+        ) {
 //        ItemsGUI(objList)
         OrganiserGUI(dbWork)
 //        TabPane(/*objList,*/ dbWork)
