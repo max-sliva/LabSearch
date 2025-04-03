@@ -192,10 +192,15 @@ fun LabRenderView(rowScope: RowScope? = null,  onPlaceSelect: (place: StorageNam
                                         println("robotStand")
                                         StorageName.ROBOT_STAND
                                     }
+                                    x in 440.0..469.0 && y in 136.0..180.0 -> {
+                                        println("UNDER_3D_PRINTER")
+                                        StorageName.UNDER_3D_PRINTER
+                                    }
+                                    //x=406.0  y=127.0   x=432.0  y=166.0
                                     else -> {StorageName.CUSTOM_PLACE}
                                 }
                                 onPlaceSelect(place)
-                                imageSrc = storageNameToPngMap[place]!!
+                                imageSrc = storageNameToPngMap[place]
                                 curPlaceItems = things?.filter {
                                     it is Item && it.place.name.toString() == place.toString()
                                 } as MutableList<Thing>
