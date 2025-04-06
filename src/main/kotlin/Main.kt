@@ -93,6 +93,7 @@ fun LabRenderView(rowScope: RowScope? = null,  onPlaceSelect: (place: StorageNam
                     onValueChange = { newText -> //обработчик ввода значений в поле
                         searchValue = newText //все изменения сохраняем в наш объект
 //                        namesList.forEach { print("$it ") }
+                        //todo связать поиск с БД
                         if (newText.length >= 3) { //если в поиске >3 букв
                             namesList.clear()
                             arrayOfNames.forEach {

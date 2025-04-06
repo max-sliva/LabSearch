@@ -441,7 +441,7 @@ fun TableForItems(
                         ) { pulsing ->
                             if (pulsing) Color.Green else Color(0xff1e63b2)
                         }
-
+//todo добавить обработку нажатия на ячейку с показом объекта и места на карте лаборатории
                         Text(
                             text = row[index],
                             textAlign = TextAlign.Center,
