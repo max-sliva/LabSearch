@@ -292,6 +292,7 @@ fun MakeInputRow( //создаем ряд с полями для ввода да
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TableForItems(
 //                  objList: MutableList<Item>,
@@ -389,6 +390,7 @@ fun TableForItems(
 //            }
         }
     }
+    var clickedItemId by remember { mutableStateOf("") }
     LazyVerticalGrid(
         columns = GridCells.Fixed(itemColumns),
 //        columns = GridCells.Adaptive(20.dp),
@@ -429,7 +431,7 @@ fun TableForItems(
 //                        animationSpec = finiteRepeatable(durationMillis = 3000, easing = LinearEasing)
                         )
                         val colorTransition = updateTransition(row[0] == id.value, label = "pulseTransition")
-                        val borderColor by colorTransition.animateColor(
+                        var borderColor = colorTransition.animateColor(
                             transitionSpec = {
                                 repeatable(
                                     iterations = 4,  // 3 full cycles
@@ -441,13 +443,24 @@ fun TableForItems(
                         ) { pulsing ->
                             if (pulsing) Color.Green else Color(0xff1e63b2)
                         }
-//todo добавить обработку нажатия на ячейку с показом объекта и места на карте лаборатории
+//todo добавить показ для выбранного объекта места на карте лаборатории
+
+//                        var cellBorderWidth by remember { mutableStateOf(2.dp) }
+//                        var cellBorderWidth = remember { 2.dp }
                         Text(
                             text = row[index],
                             textAlign = TextAlign.Center,
                             modifier = Modifier
 //                        .padding(start=20.dp)
-                                .border(2.dp, borderColor)
+                                .border(
+                                    if (clickedItemId == row[0]) 4.dp else 2.dp,
+                                    borderColor.value
+                                )
+                                .onClick {
+                                    println("item clicked with id = ${row[0]}")
+                                    clickedItemId = row[0]
+                                   // cellBorderWidth = 4.dp
+                                }
 //                            .border(2.dp, color = animatedColor,)
                         )
                     }
