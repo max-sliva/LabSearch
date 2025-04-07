@@ -29,6 +29,7 @@ import kotlin.enums.EnumEntries
 fun OrganiserGUI(dbWork: DBwork) {
     var objList = remember { mutableStateListOf<Thing>() }
     val curPlace = remember { mutableStateOf(StorageName.CUSTOM_PLACE) }
+//    val curPlace = remember { mutableStateOf<StorageName> }
     val tempObjList = dbWork.getAllObjectsForCollection("Items")
     objList.addAll(tempObjList)
     MaterialTheme {
@@ -41,7 +42,7 @@ fun OrganiserGUI(dbWork: DBwork) {
                 modifier = Modifier
                     .weight(2f)
             ) {
-                LabRenderView() {
+                LabRenderView(curPlace) {
                     curPlace.value = it
                     val itemsInPlace = if (it != StorageName.CUSTOM_PLACE) dbWork.getAllObjectsForPlace(
                         "Items",
@@ -56,7 +57,10 @@ fun OrganiserGUI(dbWork: DBwork) {
                 modifier = Modifier
                     .weight(3f)
             ) {
-                TabPane(objList, dbWork, curPlace)
+                TabPane(objList, dbWork, curPlace){
+                    curPlace.value = it
+                    println("curPlace = ${curPlace.value}")
+                }
             }
         }
     }
@@ -121,7 +125,7 @@ fun ComboBoxExample(
 }
 
 @Composable
-fun ItemsGUI(objList: SnapshotStateList<Item>, dbWork: DBwork, curPlace: MutableState<StorageName>) {
+fun ItemsGUI(objList: SnapshotStateList<Item>, dbWork: DBwork, curPlace: MutableState<StorageName>, onPlaceSelect: (place: StorageName) -> Unit) {
 //    MaterialTheme {
     println("ItemsGUI")
     var updateDb = remember { mutableStateOf(true) }
@@ -168,7 +172,10 @@ fun ItemsGUI(objList: SnapshotStateList<Item>, dbWork: DBwork, curPlace: Mutable
             btnActive.value = false
             id.value = ""
         }
-        TableForItems(objList, updateDb, dbWork, isChecked, id, itemForEdit, curPlace)
+        TableForItems(objList, updateDb, dbWork, isChecked, id, itemForEdit, curPlace){
+            curPlace.value = it
+            onPlaceSelect(it)
+        }
     }
 //    }
 }
@@ -302,7 +309,7 @@ fun TableForItems(
     isChecked: MutableState<Boolean>,
     id: MutableState<String>,
     itemForEdit: MutableState<Item>?,
-    curPlace: MutableState<StorageName>
+    curPlace: MutableState<StorageName>, onPlaceSelect: (place: StorageName) -> Unit
 ) {
     val itemColumns = 4
 //    var objList = remember { mutableStateListOf<Item>() }
@@ -443,10 +450,6 @@ fun TableForItems(
                         ) { pulsing ->
                             if (pulsing) Color.Green else Color(0xff1e63b2)
                         }
-//todo добавить показ для выбранного объекта места на карте лаборатории
-
-//                        var cellBorderWidth by remember { mutableStateOf(2.dp) }
-//                        var cellBorderWidth = remember { 2.dp }
                         Text(
                             text = row[index],
                             textAlign = TextAlign.Center,
@@ -457,8 +460,10 @@ fun TableForItems(
                                     borderColor.value
                                 )
                                 .onClick {
-                                    println("item clicked with id = ${row[0]}")
+                                    println("item clicked with id = ${row[0]} place = ${row[2]}")
                                     clickedItemId = row[0]
+                                    curPlace.value = StorageName.valueOf(row[2])
+                                    onPlaceSelect(curPlace.value)
                                    // cellBorderWidth = 4.dp
                                 }
 //                            .border(2.dp, color = animatedColor,)
@@ -503,7 +508,7 @@ fun PlacesGUI() {
 //}
 
 @Composable
-fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: MutableState<StorageName>) {
+fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: MutableState<StorageName>, onPlaceSelect: (place: StorageName) -> Unit) {
     //todo сделать нормальное оформление табов
     MaterialTheme {
         var tabIndex by remember { mutableStateOf(0) }
@@ -525,7 +530,10 @@ fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: Mutable
             }
 
             when (tabIndex) {
-                0 -> ItemsGUI(objList as SnapshotStateList<Item>, dbWork, curPlace)
+                0 -> ItemsGUI(objList as SnapshotStateList<Item>, dbWork, curPlace){
+                    curPlace.value = it
+                    onPlaceSelect(it)
+                }
                 1 -> PlacesGUI()
 //            2 -> SettingsScreen()
             }

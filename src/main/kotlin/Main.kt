@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
@@ -47,14 +46,16 @@ fun searchItem( //возвращает нужную картинку для ис
 
 @Composable
 @Preview
-fun LabRenderView(rowScope: RowScope? = null,  onPlaceSelect: (place: StorageName) -> Unit) {
+fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceSelect: (place: StorageName) -> Unit) {
     var text by remember { mutableStateOf("Найти") }
     var searchValue by remember { //объект для работы с текстом, для TextField
         mutableStateOf("") //его начальное значение
     }
     val dataHolder = DataHolder()
     var storageNameToPngMap = dataHolder.getStorageNameToPngMap()
-    var imageSrc by remember { mutableStateOf(storageNameToPngMap[StorageName.CUSTOM_PLACE]) }
+//    var imageSrc by remember { mutableStateOf(storageNameToPngMap[StorageName.CUSTOM_PLACE]) }
+//    var imageSrc by remember { mutableStateOf(storageNameToPngMap[curPlace?.value]) }
+    var imageSrc = storageNameToPngMap[curPlace?.value]
     val things = dataHolder.getData()
     println("all things: ")
     things?.forEach { println(" $it") }
@@ -244,7 +245,7 @@ fun main() = application {
         state = windowState,
         onCloseRequest = ::exitApplication
     ) {
-        LabRenderView(){
+        LabRenderView(null){
 
         }
     }
