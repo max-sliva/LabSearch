@@ -24,6 +24,18 @@ class DataHolder {
         return storageNameToPngMap
     }
 
+    fun getItemNamesFromDB(): Array<String> {
+        val db = DBwork()
+        val items = db.getAllObjectsForCollection("Items")
+        var itemNames = arrayOf<String>()
+        for (item in items){
+            if (item is Item) {
+                itemNames = itemNames.plus(item.name)
+            }
+        }
+        return itemNames
+    }
+
     fun getItemNames(): Array<String> {
         var itemNames = arrayOf<String>()
         for (item in things!!){

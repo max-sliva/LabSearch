@@ -59,7 +59,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceSelect: (place: S
     val things = dataHolder.getData()
     println("all things: ")
     things?.forEach { println(" $it") }
-    var arrayOfNames = dataHolder.getItemNames()
+    val arrayOfNames = dataHolder.getItemNamesFromDB() //получаем из БД
     var namesList = arrayOfNames.toMutableList()
     namesList.clear()
     val textStyle = TextStyle(fontSize = 20.sp)
@@ -94,17 +94,15 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceSelect: (place: S
                     onValueChange = { newText -> //обработчик ввода значений в поле
                         searchValue = newText //все изменения сохраняем в наш объект
 //                        namesList.forEach { print("$it ") }
-                        //todo связать поиск с БД
                         if (newText.length >= 3) { //если в поиске >3 букв
                             namesList.clear()
                             arrayOfNames.forEach {
                                 var accept = false
                                 it.split(" ").forEach { word ->
-                                    if (word.lowercase(Locale.getDefault()).startsWith(newText.lowercase())) accept =
-                                        true
+                                    if (word.lowercase(Locale.getDefault()).startsWith(newText.lowercase())) accept = true
                                     //todo add check for several words
                                 }
-                                if (accept) namesList.add(it)
+                                if (accept) namesList.add(it) //todo сделать фильтрацию объектов в таблице согласно списку подходящих
                             }
                         } else isLazyRowVisible = false
                         if (namesList.isNotEmpty()) isLazyRowVisible = true
