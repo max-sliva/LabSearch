@@ -89,6 +89,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceSelect: (place: S
 //            verticalArrangement = Arrangement.Center //и вертикально
         ) { // вертикальная колонка для размещения объектов
             Row() {
+                //todo добавить чек-бокс для переключения режима поиска
                 TextField(
                     value = searchValue, //связываем текст из поля с созданным ранее объектом
                     onValueChange = { newText -> //обработчик ввода значений в поле
@@ -135,6 +136,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceSelect: (place: S
                             .padding(4.dp)
                             .clickable(onClick = {
                                 searchValue = name
+                                println("searchValue = $searchValue")
                                 imageSrc = searchItem(things, searchValue, storageNameToPngMap)
                                 namesList.clear()
                                 storageNameToPngMap.forEach { k, v ->

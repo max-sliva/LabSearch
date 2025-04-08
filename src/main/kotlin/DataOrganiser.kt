@@ -6,6 +6,7 @@ import androidx.compose.foundation.ContextMenuArea
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -398,8 +399,10 @@ fun TableForItems(
         }
     }
     var clickedItemId by remember { mutableStateOf("") }
+    val lazyGridState = rememberLazyGridState() // для последующей прокрутки к найденному объекту
     LazyVerticalGrid(
         columns = GridCells.Fixed(itemColumns),
+        state = lazyGridState, //состояние для прокрутки к нужному объекту
 //        columns = GridCells.Adaptive(20.dp),
 //        columns = GridCells.FixedSize(20.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -460,7 +463,7 @@ fun TableForItems(
                                     borderColor.value
                                 )
                                 .onClick {
-                                    println("item clicked with id = ${row[0]} place = ${row[2]}")
+                                    println("item clicked with id = ${row[0]} place = ${row[2]} index in table = $index")
                                     clickedItemId = row[0]
                                     curPlace.value = StorageName.valueOf(row[2])
                                     onPlaceSelect(curPlace.value)
