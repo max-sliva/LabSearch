@@ -8,6 +8,8 @@ class DataHolder {
         Item(name="QuadroPod", place=Place(name=StorageName.ROBOT_STAND))
     )
 
+    var itemsFromDB = arrayListOf<Item>()
+
     private var storageNameToPngMap = mapOf(Pair(StorageName.BACK_SHELF, "206_backShelf.png"),
                                         Pair(StorageName.UNDER_3D_PRINTER, "206_3Dprinter.png"),
                                         Pair(StorageName.CENTER_TABLES, "206_center.png"),
@@ -30,11 +32,16 @@ class DataHolder {
         var itemNames = arrayOf<String>()
         for (item in items){
             if (item is Item) {
+                itemsFromDB.add(item)
                 itemNames = itemNames.plus(item.name)
             }
         }
         return itemNames
     }
+
+//    fun getItemsFromDB(): ArrayList<Item> {
+//        return itemsFromDB
+//    }
 
     fun getItemNames(): Array<String> {
         var itemNames = arrayOf<String>()

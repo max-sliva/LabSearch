@@ -28,9 +28,10 @@ import org.jetbrains.skia.Image
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
+import kotlin.collections.ArrayList
 
 fun searchItem( //возвращает нужную картинку для искомого предмета
-    things: Array<Thing>?,
+    things: ArrayList<Item>,
     searchValue: String,
     storageNameToPngHashMap: Map<StorageName, String>
 ): String {
@@ -46,7 +47,7 @@ fun searchItem( //возвращает нужную картинку для ис
 
 @Composable
 @Preview
-fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceSelect: (place: StorageName) -> Unit) {
+fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceOrItemSelect: (place: StorageName, foundItem: String ) -> Unit) {
     var text by remember { mutableStateOf("Найти") }
     var searchValue by remember { //объект для работы с текстом, для TextField
         mutableStateOf("") //его начальное значение
@@ -60,6 +61,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceSelect: (place: S
     println("all things: ")
     things?.forEach { println(" $it") }
     val arrayOfNames = dataHolder.getItemNamesFromDB() //получаем из БД
+    val itemsFromDB = dataHolder.itemsFromDB
     var namesList = arrayOfNames.toMutableList()
     namesList.clear()
     val textStyle = TextStyle(fontSize = 20.sp)
@@ -112,8 +114,8 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceSelect: (place: S
                     ),
                     placeholder = { Text(text = "Введите текст для поиска") }
                 )
-                Button(onClick = {
-                    imageSrc = searchItem(things, searchValue, storageNameToPngMap)
+                Button(onClick = { //todo выяснить, почему вылетает с ошибкой Index 0 out of bounds при втором поиске (иногда)
+                    imageSrc = searchItem(itemsFromDB, searchValue, storageNameToPngMap)
                     namesList.clear()
                     storageNameToPngMap.forEach { k, v ->
                         if(v==imageSrc) place = k
@@ -122,6 +124,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceSelect: (place: S
                         it is Item && it.place.name.toString() == place.toString()
                     } as MutableList<Thing>
                     println("in place: $curPlaceItems")
+                    onPlaceOrItemSelect(curPlace!!.value, searchValue)
                     if (imageSrc == "206.png") openDialog = true
                 }) {
                     Text(text)
@@ -135,11 +138,12 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceSelect: (place: S
                             .padding(4.dp)
                             .clickable(onClick = {
                                 searchValue = name
-                                imageSrc = searchItem(things, searchValue, storageNameToPngMap)
+                                imageSrc = searchItem(itemsFromDB, searchValue, storageNameToPngMap)
                                 namesList.clear()
                                 storageNameToPngMap.forEach { k, v ->
                                     if(v==imageSrc) place = k
                                 }
+                                onPlaceOrItemSelect(curPlace!!.value, searchValue)
                                 curPlaceItems = things?.filter {
                                     it is Item && it.place.name.toString() == place.toString()
                                 } as MutableList<Thing>
@@ -199,7 +203,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceSelect: (place: S
                                     //x=406.0  y=127.0   x=432.0  y=166.0
                                     else -> {StorageName.CUSTOM_PLACE}
                                 }
-                                onPlaceSelect(place)
+                                onPlaceOrItemSelect(place, "")
                                 imageSrc = storageNameToPngMap[place]
                                 curPlaceItems = things?.filter {
                                     it is Item && it.place.name.toString() == place.toString()
@@ -243,7 +247,7 @@ fun main() = application {
         state = windowState,
         onCloseRequest = ::exitApplication
     ) {
-        LabRenderView(null){
+        LabRenderView(null){ storageName, item ->
 
         }
     }

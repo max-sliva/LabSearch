@@ -29,6 +29,7 @@ import kotlin.enums.EnumEntries
 fun OrganiserGUI(dbWork: DBwork) {
     var objList = remember { mutableStateListOf<Thing>() }
     val curPlace = remember { mutableStateOf(StorageName.CUSTOM_PLACE) }
+    val selectedItem = remember { mutableStateOf("") }
 //    val curPlace = remember { mutableStateOf<StorageName> }
     val tempObjList = dbWork.getAllObjectsForCollection("Items")
     objList.addAll(tempObjList)
@@ -42,15 +43,17 @@ fun OrganiserGUI(dbWork: DBwork) {
                 modifier = Modifier
                     .weight(2f)
             ) {
-                LabRenderView(curPlace) {
-                    curPlace.value = it
-                    val itemsInPlace = if (it != StorageName.CUSTOM_PLACE) dbWork.getAllObjectsForPlace(
+                LabRenderView(curPlace) { place, selItem ->
+                    curPlace.value = place
+                    selectedItem.value = selItem
+                    val itemsInPlace = if (place != StorageName.CUSTOM_PLACE) dbWork.getAllObjectsForPlace(
                         "Items",
-                        it
+                        place
                     ) else dbWork.getAllObjectsForCollection("Items")
                     objList.clear()
                     objList.addAll(itemsInPlace)
                     println("itemsInPlace = $objList")
+                    println("selectedItem = $selectedItem")
                 }
             }
             Column(
