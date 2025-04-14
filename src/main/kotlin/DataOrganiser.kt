@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -23,6 +24,9 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
+import java.awt.FileDialog
+import java.io.File
+import java.nio.file.Paths
 import kotlin.enums.EnumEntries
 
 @Composable
@@ -145,6 +149,21 @@ fun ItemsGUI(objList: SnapshotStateList<Item>, dbWork: DBwork, curPlace: Mutable
             Button(
                 onClick = {
                     println("load")
+                    val currentDir = File(System.getProperty("user.dir"))
+                    val currentDir2 = Paths.get("").toAbsolutePath().toString()
+                    val fileDialog = FileDialog(null as ComposeWindow?, "Select File", FileDialog.LOAD)
+                    println("curDir = ${currentDir.absolutePath} \ncurDir2 = $currentDir2")
+//            fileDialog.directory = currentDir.absolutePath
+                    fileDialog.directory = currentDir2
+                    fileDialog.isVisible = true
+                    println("fileDialog.directory = ${fileDialog.directory}")
+                    if (fileDialog.file != null) {
+                        val file = File(fileDialog.directory, fileDialog.file)
+//                val bytes = file.readBytes()
+//                onFileSelected(bytes, file.name)
+                        println("file = ${file.name}")
+                        extractImagesFromExcel(file.path)
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = Color(0xff1e63b2), // Custom background color

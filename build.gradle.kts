@@ -30,6 +30,8 @@ dependencies {
     implementation("com.google.code.gson:gson:2.8.9")
 //    implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(kotlin("reflect"))
+    implementation("org.apache.poi:poi:5.2.0")
+    implementation("org.apache.poi:poi-ooxml:5.2.0")
 //    implementation ("androidx.compose.material3:material3:1.2.0")
 }
 
