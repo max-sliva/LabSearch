@@ -16,6 +16,7 @@ class ExcelWork(private val filePath: String) {
             FileInputStream(filePath).use { fis ->
                 WorkbookFactory.create(fis).use { workbook ->
                     val sheet = workbook.getSheetAt(sheetIndex) // Get the sheet (e.g., first sheet)
+
                     val row = sheet.getRow(rowIndex) // Get the target row
                     if (row == null) {
                         println("Row $rowIndex does not exist.")
@@ -24,7 +25,7 @@ class ExcelWork(private val filePath: String) {
 
                     for (cell in row) { // Iterate over cells in the row
                         when (cell.cellType) {
-                            CellType.STRING -> if (cell.stringCellValue.length<15) print(" | String: ${cell.stringCellValue} ")
+                            CellType.STRING -> if (cell.stringCellValue.length<16) print(" | String: ${cell.stringCellValue} ")
                                                 else print("| String: ${cell.stringCellValue.substring(0..15)}")
                             CellType.NUMERIC -> {
                                 if (DateUtil.isCellDateFormatted(cell)) {
@@ -60,8 +61,18 @@ class ExcelWork(private val filePath: String) {
     }
 
 
-    fun readCellsFromExcel() {
-
+    fun readCellsFromExcel(sheetIndex: Int = 0, firstRow: Int = 2) {
+        var rowsNum = 0
+        FileInputStream(filePath).use { fis ->
+            WorkbookFactory.create(fis).use { workbook ->
+                val sheet = workbook.getSheetAt(sheetIndex) // Get the sheet (e.g., first sheet)
+                rowsNum = sheet.lastRowNum
+            }
+        }
+        println("rowsNum = $rowsNum")
+        for (i in firstRow..rowsNum){
+            readXlsxRow(sheetIndex, i)
+        }
     }
 
     fun getDrawingsFromExcelSheet(sheetIndex: Int = 0): XSSFDrawing? {

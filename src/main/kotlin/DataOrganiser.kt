@@ -163,7 +163,8 @@ fun ItemsGUI(objList: SnapshotStateList<Item>, dbWork: DBwork, curPlace: Mutable
 //                onFileSelected(bytes, file.name)
                         println("file = ${file.name}")
                         val excelWork = ExcelWork(file.path)
-                        excelWork.readXlsxRow(1, 2)
+                        excelWork.readCellsFromExcel(1, 2)
+//                        excelWork.readXlsxRow(1, 2)
 
 //                        excelWork.extractImagesFromExcel()
                     }
