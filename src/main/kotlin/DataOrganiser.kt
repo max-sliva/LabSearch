@@ -162,7 +162,10 @@ fun ItemsGUI(objList: SnapshotStateList<Item>, dbWork: DBwork, curPlace: Mutable
 //                val bytes = file.readBytes()
 //                onFileSelected(bytes, file.name)
                         println("file = ${file.name}")
-                        extractImagesFromExcel(file.path)
+                        val excelWork = ExcelWork(file.path)
+                        excelWork.readXlsxRow(1, 2)
+
+//                        excelWork.extractImagesFromExcel()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(
