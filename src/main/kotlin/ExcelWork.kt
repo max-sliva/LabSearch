@@ -128,41 +128,41 @@ class ExcelWork(private val filePath: String) {
         }
     }
 
-    fun getImageFromCell(sheetIndex: Int, // 0-based sheet index
-                         targetRow: Int, // 0-based row index
-                         targetCol: Int) {
-        FileInputStream(filePath).use { inputStream ->
-            XSSFWorkbook(inputStream).use { workbook ->
-                // Iterate through all sheets in the workbook
-//                val sheet = workbook.getSheetAt(sheetIndex)
-                val drawings = getDrawingsFromExcelSheet(sheetIndex)
-
-                // Iterate through all images in the sheet
-//                for (drawing in drawings!!) {
-                drawings?.forEach { shape ->
-                    if (shape is XSSFPicture) {
-                        val anchor = shape.clientAnchor as XSSFClientAnchor
-                        // Check if image is anchored to the target cell's top-left corner
-                        if (anchor.row1 == targetRow && anchor.col1.toInt() == targetCol) {
-//                            println("cell[$targetRow,$targetCol] has image ")
-                            val pictureData = shape.pictureData
-                            val data = pictureData.data
-                            // Generate unique file name
-                            val format = pictureData.suggestFileExtension()
-                            val outputFile = "image_${targetRow}_$targetCol.$format"
-                            // Save the image
-                            FileOutputStream(outputFile).use { fos ->
-                                fos.write(data)
-                            }
-//                            Thread.sleep(1000)
-                            println("found images: $outputFile")
-
-                        }
-                    }
-                }
-            }
-        }
-    }
+//    fun getImageFromCell(sheetIndex: Int, // 0-based sheet index
+//                         targetRow: Int, // 0-based row index
+//                         targetCol: Int) {
+//        FileInputStream(filePath).use { inputStream ->
+//            XSSFWorkbook(inputStream).use { workbook ->
+//                // Iterate through all sheets in the workbook
+////                val sheet = workbook.getSheetAt(sheetIndex)
+//                val drawings = getDrawingsFromExcelSheet(sheetIndex)
+//
+//                // Iterate through all images in the sheet
+////                for (drawing in drawings!!) {
+//                drawings?.forEach { shape ->
+//                    if (shape is XSSFPicture) {
+//                        val anchor = shape.clientAnchor as XSSFClientAnchor
+//                        // Check if image is anchored to the target cell's top-left corner
+//                        if (anchor.row1 == targetRow && anchor.col1.toInt() == targetCol) {
+////                            println("cell[$targetRow,$targetCol] has image ")
+//                            val pictureData = shape.pictureData
+//                            val data = pictureData.data
+//                            // Generate unique file name
+//                            val format = pictureData.suggestFileExtension()
+//                            val outputFile = "image_${targetRow}_$targetCol.$format"
+//                            // Save the image
+//                            FileOutputStream(outputFile).use { fos ->
+//                                fos.write(data)
+//                            }
+////                            Thread.sleep(1000)
+//                            println("found images: $outputFile")
+//
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     fun extractImagesFromExcel() {
         var imageCounter = 0
