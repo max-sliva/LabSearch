@@ -32,12 +32,16 @@ import java.nio.file.Paths
 import kotlin.enums.EnumEntries
 
 @Composable
-fun ItemsGUI(objList: SnapshotStateList<Item>, dbWork: DBwork, curPlace: MutableState<StorageName>, onPlaceSelect: (place: StorageName) -> Unit) {
+fun ItemsGUI(
+    objList: SnapshotStateList<Item>,
+    dbWork: DBwork,
+    curPlace: MutableState<StorageName>,
+    onPlaceSelect: (place: StorageName) -> Unit
+) {
 //    MaterialTheme {
     println("ItemsGUI")
     var updateDb = remember { mutableStateOf(true) }
 //    var objList = dbWork.getAllObjectsForCollection("Items") as List<Item>
-
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -98,7 +102,7 @@ fun ItemsGUI(objList: SnapshotStateList<Item>, dbWork: DBwork, curPlace: Mutable
             btnActive.value = false
             id.value = ""
         }
-        TableForItems(objList, updateDb, dbWork, isChecked, id, itemForEdit, curPlace){
+        TableForItems(objList, updateDb, dbWork, isChecked, id, itemForEdit, curPlace) {
             curPlace.value = it
             onPlaceSelect(it)
         }
@@ -108,7 +112,7 @@ fun ItemsGUI(objList: SnapshotStateList<Item>, dbWork: DBwork, curPlace: Mutable
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ComboBoxExample(
+fun PlaceSelectComboBox(
     entries: EnumEntries<StorageName>,
     currentPlace: String/*, btnActive: Boolean*/,
     onUpdate: (x: String) -> Unit
@@ -218,7 +222,7 @@ fun MakeInputRow( //создаем ряд с полями для ввода да
                         .border(2.dp, Color.Black)
                         .weight(2f)
                 )
-            else ComboBoxExample(StorageName.entries, mapForItemFields["place"]!! /*, btnActive1*/) {
+            else PlaceSelectComboBox(StorageName.entries, mapForItemFields["place"]!! /*, btnActive1*/) {
                 println("----!! ComboBox place input = $it !!!!---------")
                 mapForItemFields["place"] = it
                 if (mapForItemFields["name"] != "") btnActive.value = true
@@ -351,7 +355,7 @@ fun TableForItems(
 //    var borderColor by remember{ mutableStateOf(Color(0xff1e63b2)) }
     val fieldNames = objList[0].getListOfFieldNames()
     fieldNames.forEach {
-        if (!mapForFieldNames.keys.contains(it))  mapForFieldNames[it] = true
+        if (!mapForFieldNames.keys.contains(it)) mapForFieldNames[it] = true
     }
     var mDisplayMenu = remember { mutableStateOf(false) }
     MakeTableCaption(mDisplayMenu, mapForFieldNames, fieldNames)
@@ -376,12 +380,110 @@ fun TableForItems(
 }
 
 @Composable
-private fun MakeTableContent2(){
+private fun MakeTableCaption(
+    mDisplayMenu: MutableState<Boolean>,
+    mapForFieldNames: SnapshotStateMap<String, Boolean>,
+    fieldNames: List<String>
+) {
+//    var mDisplayMenu1 = mDisplayMenu
+    Row( //строка с названиями полей
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dp)
+            .border(2.dp, Color.Black)
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val button = event.buttons
+                        if (button.isSecondaryPressed || button.isPrimaryPressed) {
+                            println("context menu for captions is called")
+                            mDisplayMenu.value = true
+                            println("mapForFieldNames = $mapForFieldNames")
+                        }
+                    }
+                }
+            },
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        fieldNames.forEach {
+            if (mapForFieldNames[it]!!)
+                Text(
+                    text = it,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .border(2.dp, Color.Black)
+                        .wrapContentWidth()
+                        .weight(5f)
+                )
+            DropdownMenu(
+                expanded = mDisplayMenu.value,
+                onDismissRequest = { mDisplayMenu.value = false }
+            ) {
+                mapForFieldNames.forEach { (name, checkValue) ->
+                    DropdownMenuItem(
+                        content = {
+                            Checkbox(
+                                checked = checkValue,
+                                onCheckedChange = { checked ->
+                                    mapForFieldNames[name] = checked
+                                }
+                            )
+                            Text(
+                                text = name, fontSize = 20.sp,
+                                modifier = Modifier
+                                    .clickable {
+                                    }
+                            )
+                        },
+                        onClick = {
+                            mDisplayMenu.value = false
+                        }
+                    )
+                }
+
+            }
+        }
+    }
+}
+
+@Composable
+private fun MakeTableContent2( //содержимое таблицы на основе обычного Row
+    mapForFieldNames: SnapshotStateMap<String, Boolean>,
+    objList: SnapshotStateList<Item>,
+    mapColnamesToNumber: Map<Int, String>,
+    isChecked: MutableState<Boolean>,
+    id: MutableState<String>,
+    clickedItemId: MutableState<String>,
+    itemForEdit: MutableState<Item>?,
+    delId: MutableState<String>,
+    showDialog: MutableState<Boolean>,
+    curPlace: MutableState<StorageName>,
+    onPlaceSelect: (StorageName) -> Unit
+) {
+    var clickedItemId1 = clickedItemId
+    if (objList.size > 0) {
+        objList.forEach { obj ->
+            val row = obj.getListOfValues().filterIndexed { index, s ->
+                val colName = mapColnamesToNumber[index]
+                mapForFieldNames[colName]!!
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp)
+                    .border(2.dp, Color.Black)
+            ) {
+
+            }
+        }
+    }
 
 }
 
 @Composable
-private fun MakeTableContent(
+private fun MakeTableContent( //содержимое таблицы на основе LazyVerticalGrid
     mapForFieldNames: SnapshotStateMap<String, Boolean>,
     objList: SnapshotStateList<Item>,
     mapColnamesToNumber: Map<Int, String>,
@@ -485,77 +587,6 @@ private fun MakeTableContent(
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MakeTableCaption(
-    mDisplayMenu: MutableState<Boolean>,
-    mapForFieldNames: SnapshotStateMap<String, Boolean>,
-    fieldNames: List<String>
-) {
-//    var mDisplayMenu1 = mDisplayMenu
-    Row( //строка с названиями полей
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(4.dp)
-            .border(2.dp, Color.Black)
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
-                        val event = awaitPointerEvent()
-                        val button = event.buttons
-                        if (button.isSecondaryPressed || button.isPrimaryPressed) {
-                            println("context menu for captions is called")
-                            mDisplayMenu.value = true
-                            println("mapForFieldNames = $mapForFieldNames")
-                        }
-                    }
-                }
-            },
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        fieldNames.forEach {
-            if (mapForFieldNames[it]!!)
-                Text(
-                    text = it,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .border(2.dp, Color.Black)
-                        .wrapContentWidth()
-                        .weight(5f)
-                )
-            DropdownMenu(
-                expanded = mDisplayMenu.value,
-                onDismissRequest = { mDisplayMenu.value = false }
-            ) {
-                mapForFieldNames.forEach { (name, checkValue) ->
-                    DropdownMenuItem(
-                        content = {
-                            Checkbox(
-                                checked = checkValue,
-                                onCheckedChange = { checked ->
-                                    mapForFieldNames[name] = checked
-                                }
-                            )
-                            Text(
-                                text = name, fontSize = 20.sp,
-                                modifier = Modifier
-                                    .clickable {
-
-                                    }
-                            )
-                        },
-                        onClick = {
-                            mDisplayMenu.value = false
-
-                        }
-                    )
-                }
-
             }
         }
     }
