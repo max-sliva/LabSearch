@@ -313,7 +313,7 @@ fun TableForItems(
     }
     val showDialog = remember { mutableStateOf(false) }
     val delOk = remember { mutableStateOf(false) }
-    var delId by remember { mutableStateOf("") }
+    var delId = remember { mutableStateOf("") }
     val mapForFieldNames = remember { mutableStateMapOf<String, Boolean>() }
 
     if (showDialog.value)
@@ -329,7 +329,7 @@ fun TableForItems(
                         // Handle OK action
                         delOk.value = true
                         showDialog.value = false
-                        dbWork.deleteObjectFromCollectiobById(delId, "Items")
+                        dbWork.deleteObjectFromCollectiobById(delId.value, "Items")
                         updateDb.value = true
                         println("deleted item with id = $delId")
                     }
@@ -355,11 +355,49 @@ fun TableForItems(
     }
     var mDisplayMenu = remember { mutableStateOf(false) }
     MakeTableCaption(mDisplayMenu, mapForFieldNames, fieldNames)
-    var clickedItemId by remember { mutableStateOf("") }
+
+    var clickedItemId = remember { mutableStateOf("") }
     val mapColnamesToNumber = mapOf(0 to "id", 1 to "name", 2 to "place", 3 to "info")
+    //todo разобраться с фильтром колонок по полям объекта или переделать как с заголовками
+
+    MakeTableContent(
+        mapForFieldNames,
+        objList,
+        mapColnamesToNumber,
+        isChecked,
+        id,
+        clickedItemId,
+        itemForEdit,
+        delId,
+        showDialog,
+        curPlace,
+        onPlaceSelect
+    )
+}
+
+@Composable
+private fun MakeTableContent2(){
+
+}
+
+@Composable
+private fun MakeTableContent(
+    mapForFieldNames: SnapshotStateMap<String, Boolean>,
+    objList: SnapshotStateList<Item>,
+    mapColnamesToNumber: Map<Int, String>,
+    isChecked: MutableState<Boolean>,
+    id: MutableState<String>,
+    clickedItemId: MutableState<String>,
+    itemForEdit: MutableState<Item>?,
+    delId: MutableState<String>,
+    showDialog: MutableState<Boolean>,
+    curPlace: MutableState<StorageName>,
+    onPlaceSelect: (StorageName) -> Unit
+) {
+    var clickedItemId1 = clickedItemId
     LazyVerticalGrid(
 //        columns = GridCells.Fixed(itemColumns),
-        columns = GridCells.Fixed(mapForFieldNames.filterValues{ it }.size), //кол-во колонок в зависимости от выбранных в контекстном меню
+        columns = GridCells.Fixed(mapForFieldNames.filterValues { it }.size), //кол-во колонок в зависимости от выбранных в контекстном меню
         verticalArrangement = Arrangement.spacedBy(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier
@@ -369,7 +407,7 @@ fun TableForItems(
         if (objList.size > 0) {
             println("TableForItems updated")
             objList.forEach { obj ->
-                val row = obj.getListOfValues().filterIndexed { index, s -> //todo разобраться с фильтром колонок по полям объекта
+                val row = obj.getListOfValues().filterIndexed { index, s ->
                     val colName = mapColnamesToNumber[index]
                     mapForFieldNames[colName]!!
                 }
@@ -384,24 +422,24 @@ fun TableForItems(
                                         println("trying to edit item with id = ${row[0]} ")
                                         isChecked.value = true
                                         id.value = row[0]
-                                        clickedItemId = row[0]
+                                        clickedItemId1.value = row[0]
                                         itemForEdit!!.value = obj
-    //                                borderColor = Color.Green
+                                        //                                borderColor = Color.Green
                                     },
                                     ContextMenuItem("Delete") {
                                         println("trying to delete item with id = ${row[0]} ")
-                                        clickedItemId = row[0]
-                                        delId = row[0]
+                                        clickedItemId1.value = row[0]
+                                        delId.value = row[0]
                                         showDialog.value = true
                                     }
                                 )
                             }
                         ) {
-    //                    val borderColor = if (row[0]==id.value) Color.Green  else Color(0xff1e63b2)
+                            //                    val borderColor = if (row[0]==id.value) Color.Green  else Color(0xff1e63b2)
                             val animatedColor by animateColorAsState(
                                 targetValue = if (row[0] == id.value) Color.Green else Color(0xff1e63b2),
                                 animationSpec = tween(durationMillis = 3000, easing = LinearEasing)
-    //                        animationSpec = finiteRepeatable(durationMillis = 3000, easing = LinearEasing)
+                                //                        animationSpec = finiteRepeatable(durationMillis = 3000, easing = LinearEasing)
                             )
                             val colorTransition = updateTransition(row[0] == id.value, label = "pulseTransition")
                             var borderColor = colorTransition.animateColor(
@@ -416,34 +454,34 @@ fun TableForItems(
                             ) { pulsing ->
                                 if (pulsing) Color.Green else Color(0xff1e63b2)
                             }
-                                Text(
-                                    text = row[index],
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier
-                                        //                        .padding(start=20.dp)
-                                        .border(
-                                            if (clickedItemId == row[0]) 4.dp else 2.dp,
-                                            borderColor.value
-                                        )
-                                        //                                .onClick {
-                                        //                                }
-                                        .pointerInput(Unit) {
-                                            awaitPointerEventScope {
-                                                while (true) {
-                                                    val event = awaitPointerEvent()
-                                                    val button = event.buttons
-                                                    if (button.isSecondaryPressed || button.isPrimaryPressed) {
-                                                        println("item clicked with id = ${row[0]} place = ${row[2]}")
-                                                        clickedItemId = row[0]
-                                                        curPlace.value = StorageName.valueOf(row[2])
-                                                        onPlaceSelect(curPlace.value)
-                                                        clickedItemId = row[0]
-                                                    }
+                            Text(
+                                text = row[index],
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    //                        .padding(start=20.dp)
+                                    .border(
+                                        if (clickedItemId1.value == row[0]) 4.dp else 2.dp,
+                                        borderColor.value
+                                    )
+                                    //                                .onClick {
+                                    //                                }
+                                    .pointerInput(Unit) {
+                                        awaitPointerEventScope {
+                                            while (true) {
+                                                val event = awaitPointerEvent()
+                                                val button = event.buttons
+                                                if (button.isSecondaryPressed || button.isPrimaryPressed) {
+                                                    println("item clicked with id = ${row[0]} place = ${row[2]}")
+                                                    clickedItemId1.value = row[0]
+                                                    curPlace.value = StorageName.valueOf(row[2])
+                                                    onPlaceSelect(curPlace.value)
+                                                    clickedItemId1.value = row[0]
                                                 }
                                             }
                                         }
-                                    //                            .border(2.dp, color = animatedColor,)
-                                )
+                                    }
+                                //                            .border(2.dp, color = animatedColor,)
+                            )
                         }
                     }
                 }
