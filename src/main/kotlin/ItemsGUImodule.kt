@@ -3,6 +3,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,7 +23,7 @@ import androidx.compose.ui.input.pointer.isPrimaryPressed
 import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+//import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +31,8 @@ import java.awt.FileDialog
 import java.io.File
 import java.nio.file.Paths
 import kotlin.enums.EnumEntries
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun ItemsGUI(
@@ -362,8 +365,6 @@ fun TableForItems(
 
     var clickedItemId = remember { mutableStateOf("") }
     val mapColnamesToNumber = mapOf(0 to "id", 1 to "name", 2 to "place", 3 to "info")
-    //todo разобраться с фильтром колонок по полям объекта или переделать как с заголовками
-
     MakeTableContent(
         mapForFieldNames,
         objList,
@@ -463,23 +464,56 @@ private fun MakeTableContent2( //содержимое таблицы на осн
     onPlaceSelect: (StorageName) -> Unit
 ) {
     var clickedItemId1 = clickedItemId
-    if (objList.size > 0) {
-        objList.forEach { obj ->
-            val row = obj.getListOfValues().filterIndexed { index, s ->
-                val colName = mapColnamesToNumber[index]
-                mapForFieldNames[colName]!!
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp)
-                    .border(2.dp, Color.Black)
-            ) {
-
-            }
+    if (objList.isNotEmpty()) {
+        LazyColumn( //объект для представления списка
+//добавляем отступы между эл-ми списка
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+        ) {
+            items(
+                items = objList,
+//                key =
+                itemContent = { item -> //содержимое эл-та списка
+                    TableRow(item, mapColnamesToNumber, mapForFieldNames)//вызываем метод для формирования каждого эл-та списка
+                }
+            )
         }
     }
+}
 
+@Composable
+fun TableRow(item: Item, mapColnamesToNumber: Map<Int, String>, mapForFieldNames: SnapshotStateMap<String, Boolean>){ //ф-ия для создания ряда с данными для LazyColumn
+    Row( //создаем ряд с данными
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .wrapContentHeight()
+            .fillMaxWidth()
+            .border(BorderStroke(2.dp, Color.Blue)) //синяя граница для каждого эл-та списка
+    ) {
+//        val row = item.getListOfValues()
+        val row = item.getListOfValues().filterIndexed { index, s ->
+//            val colName = mapColnamesToNumber[index]
+//            mapForFieldNames[colName]!!
+            mapForFieldNames[mapColnamesToNumber[index]]==true
+        }
+        println("row = $row")
+        row.forEachIndexed {index, cell ->
+//        for (cell in row) {
+            val colName = mapColnamesToNumber[index]
+//            if (mapForFieldNames[colName]!!) {
+                Text(
+                    text = cell,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .border(2.dp, Color(0xff1e63b2))
+                        .wrapContentWidth()
+                        .weight(5f)
+                )
+//            }
+        }
+    }
 }
 
 @Composable
@@ -509,29 +543,30 @@ private fun MakeTableContent( //содержимое таблицы на осн�
         if (objList.size > 0) {
             println("TableForItems updated")
             objList.forEach { obj ->
-                val row = obj.getListOfValues().filterIndexed { index, s ->
+                val rowWithID = obj.getListOfValues() //все поля
+                val row = obj.getListOfValues().filterIndexed { index, s -> //только нужные согласно выбору чекбоксов
                     val colName = mapColnamesToNumber[index]
                     mapForFieldNames[colName]!!
                 }
                 items(row.size) { index ->
 //                items(mapForFieldNames.filterValues{ it }.size) { index ->
                     val colName = mapColnamesToNumber[index]
-                    if (mapForFieldNames[colName]!!) {
+//                    if (mapForFieldNames[colName]!!) {
                         ContextMenuArea(
                             items = {
                                 listOf(
                                     ContextMenuItem("Edit") {
-                                        println("trying to edit item with id = ${row[0]} ")
+                                        println("trying to edit item with id = ${rowWithID[0]} ")
                                         isChecked.value = true
-                                        id.value = row[0]
-                                        clickedItemId1.value = row[0]
+                                        id.value = rowWithID[0]
+                                        clickedItemId1.value = rowWithID[0]
                                         itemForEdit!!.value = obj
                                         //                                borderColor = Color.Green
                                     },
                                     ContextMenuItem("Delete") {
-                                        println("trying to delete item with id = ${row[0]} ")
-                                        clickedItemId1.value = row[0]
-                                        delId.value = row[0]
+                                        println("trying to delete item with id = ${rowWithID[0]} ")
+                                        clickedItemId1.value = rowWithID[0]
+                                        delId.value = rowWithID[0]
                                         showDialog.value = true
                                     }
                                 )
@@ -539,11 +574,11 @@ private fun MakeTableContent( //содержимое таблицы на осн�
                         ) {
                             //                    val borderColor = if (row[0]==id.value) Color.Green  else Color(0xff1e63b2)
                             val animatedColor by animateColorAsState(
-                                targetValue = if (row[0] == id.value) Color.Green else Color(0xff1e63b2),
+                                targetValue = if (rowWithID[0] == id.value) Color.Green else Color(0xff1e63b2),
                                 animationSpec = tween(durationMillis = 3000, easing = LinearEasing)
                                 //                        animationSpec = finiteRepeatable(durationMillis = 3000, easing = LinearEasing)
                             )
-                            val colorTransition = updateTransition(row[0] == id.value, label = "pulseTransition")
+                            val colorTransition = updateTransition(rowWithID[0] == id.value, label = "pulseTransition")
                             var borderColor = colorTransition.animateColor(
                                 transitionSpec = {
                                     repeatable(
@@ -562,7 +597,7 @@ private fun MakeTableContent( //содержимое таблицы на осн�
                                 modifier = Modifier
                                     //                        .padding(start=20.dp)
                                     .border(
-                                        if (clickedItemId1.value == row[0]) 4.dp else 2.dp,
+                                        if (clickedItemId1.value == rowWithID[0]) 4.dp else 2.dp,
                                         borderColor.value
                                     )
                                     //                                .onClick {
@@ -573,11 +608,11 @@ private fun MakeTableContent( //содержимое таблицы на осн�
                                                 val event = awaitPointerEvent()
                                                 val button = event.buttons
                                                 if (button.isSecondaryPressed || button.isPrimaryPressed) {
-                                                    println("item clicked with id = ${row[0]} place = ${row[2]}")
-                                                    clickedItemId1.value = row[0]
-                                                    curPlace.value = StorageName.valueOf(row[2])
+                                                    println("item clicked with id = ${rowWithID[0]} place = ${rowWithID[2]}")
+                                                    clickedItemId1.value = rowWithID[0]
+                                                    curPlace.value = StorageName.valueOf(rowWithID[2])
                                                     onPlaceSelect(curPlace.value)
-                                                    clickedItemId1.value = row[0]
+                                                    clickedItemId1.value = rowWithID[0]
                                                 }
                                             }
                                         }
@@ -585,7 +620,7 @@ private fun MakeTableContent( //содержимое таблицы на осн�
                                 //                            .border(2.dp, color = animatedColor,)
                             )
                         }
-                    }
+//                    }
                 }
             }
         }
