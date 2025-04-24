@@ -22,7 +22,6 @@ fun OrganiserGUI(dbWork: DBwork) {
             modifier = Modifier.fillMaxSize(), //заполняем всё доступное пространство
 //            horizontalAlignment = Alignment.CenterHorizontally, //по центру горизонтально
         ) {
-            //todo подумать над импортом из файла
             Column(
                 modifier = Modifier
                     .weight(2f)

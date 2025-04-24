@@ -55,7 +55,7 @@ fun ItemsGUI(
         ) {
             Button(
                 onClick = {
-                    println("load")
+                    println("load") //todo подумать над импортом из файла
                     val currentDir = File(System.getProperty("user.dir"))
                     val currentDir2 = Paths.get("").toAbsolutePath().toString()
                     val fileDialog = FileDialog(null as ComposeWindow?, "Select File", FileDialog.LOAD)
@@ -423,11 +423,13 @@ private fun MakeTableCaption(
                 expanded = mDisplayMenu.value,
                 onDismissRequest = { mDisplayMenu.value = false }
             ) {
-                mapForFieldNames.forEach { (name, checkValue) -> //todo переставить по порядку столбцов
+//                mapForFieldNames.forEach { (name, checkValue) ->
+                fieldNames.forEach { name ->
                     DropdownMenuItem(
                         content = {
                             Checkbox(
-                                checked = checkValue,
+//                                checked = checkValue,
+                                checked = mapForFieldNames[name]==true,
                                 onCheckedChange = { checked ->
                                     mapForFieldNames[name] = checked
                                 }
@@ -436,6 +438,7 @@ private fun MakeTableCaption(
                                 text = name, fontSize = 20.sp,
                                 modifier = Modifier
                                     .clickable {
+                                        mapForFieldNames[name] = !mapForFieldNames[name]!!
                                     }
                             )
                         },
