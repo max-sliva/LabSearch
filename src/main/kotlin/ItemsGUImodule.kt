@@ -357,6 +357,7 @@ fun TableForItems(
         )
 //    var borderColor by remember{ mutableStateOf(Color(0xff1e63b2)) }
     val fieldNames = objList[0].getListOfFieldNames()
+    println("fieldNames = $fieldNames")
     fieldNames.forEach {
         if (!mapForFieldNames.keys.contains(it)) mapForFieldNames[it] = true
     }
