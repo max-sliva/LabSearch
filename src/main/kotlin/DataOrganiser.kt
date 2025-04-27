@@ -26,7 +26,8 @@ fun OrganiserGUI(dbWork: DBwork) {
                 modifier = Modifier
                     .weight(2f)
             ) {
-                LabRenderView(curPlace) { place, selItem ->
+                //todo сделать возможность поворота изображения лаборатории в зависимости от положения устройства с программой
+                LabRenderView(curPlace) { place, selItem -> //todo добавить selItem в параметры здесь и в TabPane и далее по списку, чтобы выделять в таблице при поиске по вводу слева
                     curPlace.value = place
                     selectedItem.value = selItem
                     val itemsInPlace = if (place != StorageName.CUSTOM_PLACE) dbWork.getAllObjectsForPlace(
@@ -43,7 +44,7 @@ fun OrganiserGUI(dbWork: DBwork) {
                 modifier = Modifier
                     .weight(3f)
             ) {
-                TabPane(objList, dbWork, curPlace){
+                TabPane(objList, dbWork, curPlace){//todo возвращать не StorageName, а Item, а у него брать StorageName
                     curPlace.value = it
                     println("curPlace = ${curPlace.value}")
                 }
