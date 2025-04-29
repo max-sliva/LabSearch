@@ -66,6 +66,8 @@ class DBwork {
         return objList
     }
 
+    //todo сделать ф-ию для удаления всех записей в коллекции
+
     fun getAllCollectionsFromDB() {
         db.scopes.forEach { scope ->
             println("Scope :: ${scope.name}")

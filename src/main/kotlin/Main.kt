@@ -11,6 +11,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
@@ -68,6 +69,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceOrItemSelect: (pl
     var isLazyRowVisible by remember { mutableStateOf(false) }
     var openDialog by remember { mutableStateOf(false)}
     var imageRatio by remember { mutableStateOf(1.0) }
+    var imageRotate = remember {mutableStateOf(0f)}
     var curPlaceItems = remember { mutableListOf(Thing()) }
     var place = StorageName.CUSTOM_PLACE
 
@@ -175,34 +177,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceOrItemSelect: (pl
                                 println("after scaling x=${x}  y=${y}")
 //                                var place: StorageName
 //                                BACK_SHELF, CENTER_TABLES, TABLE_AT_DOOR, CUSTOM_PLACE, ROBOT_STAND, CABLE_STAND
-                                place = when {
-                                    x in 355.0..408.0 && y in 33.0..121.0 -> {
-                                        println("backShelf")
-                                        StorageName.BACK_SHELF
-                                    }
-                                    x in 349.0..394.0 && y in 208.0..337.0 -> {
-                                        println("center")
-                                        StorageName.CENTER_TABLES
-                                    }
-                                    x in 178.0..252.0 && y in 273.0..302.0 -> {
-                                        println("cableStand")
-                                        StorageName.CABLE_STAND
-                                    }
-                                    x in 474.0..564.0 && y in 269.0..303.0 -> {
-                                        println("door")
-                                        StorageName.TABLE_AT_DOOR
-                                    }
-                                    x in 150.0..235.0 && y in 357.0..397.0 -> {
-                                        println("robotStand")
-                                        StorageName.ROBOT_STAND
-                                    }
-                                    x in 440.0..469.0 && y in 136.0..180.0 -> {
-                                        println("UNDER_3D_PRINTER")
-                                        StorageName.UNDER_3D_PRINTER
-                                    }
-                                    //x=406.0  y=127.0   x=432.0  y=166.0
-                                    else -> {StorageName.CUSTOM_PLACE}
-                                }
+                                place = getStorageName(x, y, imageRotate)
                                 onPlaceOrItemSelect(place, "")
                                 imageSrc = storageNameToPngMap[place]
                                 curPlaceItems = things?.filter {
@@ -218,7 +193,17 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceOrItemSelect: (pl
                             println("image size = ${size.width} x ${size.height}")
                             imageRatio = 784.0 / size.width //получаем коэффициент изменения размера картинки
                         }
+                        .rotate(imageRotate.value)
                 )
+            Button(
+                onClick = {
+                    imageRotate.value+=90
+                    if (imageRotate.value==360f) imageRotate.value = 0f
+                    println("lab image rotate = $imageRotate.value")
+                }
+            ){
+                Text(text = "rotate")
+            }
 //                LazyColumn (modifier = Modifier
 //                    .wrapContentWidth()
 //                ) {
@@ -233,6 +218,49 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceOrItemSelect: (pl
         }
     }
 }
+
+private fun getStorageName(x: Double, y: Double, imageRotate: MutableState<Float>): StorageName =
+    if (imageRotate.value==0f) {
+        println("---!! 0 degrees !!----")
+        when {
+            x in 355.0..408.0 && y in 33.0..121.0 -> {
+                println("backShelf")
+                StorageName.BACK_SHELF
+            }
+
+            x in 349.0..394.0 && y in 208.0..337.0 -> {
+                println("center")
+                StorageName.CENTER_TABLES
+            }
+
+            x in 178.0..252.0 && y in 273.0..302.0 -> {
+                println("cableStand")
+                StorageName.CABLE_STAND
+            }
+
+            x in 474.0..564.0 && y in 269.0..303.0 -> {
+                println("door")
+                StorageName.TABLE_AT_DOOR
+            }
+
+            x in 150.0..235.0 && y in 357.0..397.0 -> {
+                println("robotStand")
+                StorageName.ROBOT_STAND
+            }
+
+            x in 440.0..469.0 && y in 136.0..180.0 -> {
+                println("UNDER_3D_PRINTER")
+                StorageName.UNDER_3D_PRINTER
+            }
+            //x=406.0  y=127.0   x=432.0  y=166.0
+            else -> {
+                StorageName.CUSTOM_PLACE
+            }
+        }
+    } else {
+        println("---!! not 0 degrees !!----")
+        StorageName.CUSTOM_PLACE
+    }
 
 fun loadImageFrom(filePath: String): ImageBitmap { //ф-ия для получения изображения из файла
     val bytes = Files.readAllBytes(Path.of(filePath)) // path relative to project root
