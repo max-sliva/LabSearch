@@ -67,6 +67,20 @@ class DBwork {
     }
 
     //todo сделать ф-ию для удаления всех записей в коллекции
+    fun clearCollection(collectionName: String){
+        val items = getAllObjectsForCollection(collectionName)
+        items.forEach {
+            deleteObjectFromCollectiobById(it.id, collectionName)
+        }
+        val collection = db.getCollection(collectionName)
+        println("after clear in $collectionName there are ${collection!!.count} items")
+//        val query = "SELECT META().id FROM `bucket`.`scope`.`collection`"
+//        val result = collection.query(query)
+//        for (row in result.rowsAsObject()) {
+//            val id = row.getString("id")
+//            collection.remove(id)
+//        }
+    }
 
     fun getAllCollectionsFromDB() {
         db.scopes.forEach { scope ->
@@ -126,22 +140,22 @@ class DBwork {
     }
 
     fun getLastId(collectionName: String): String? {
-        val res = getLastDocument(collectionName = "Items")
+        val res = getLastDocument(collectionName = collectionName)
 //        println("res = ${res!!.toMap()}")
         val items = res?.getDictionary("Items")
 //        println("items = $items")
-        val id = items!!.getString("id")
+        val id = items?.getString("id")
 //    val id = res.getString("id")
 //        println("last id = $id")
         return id
     }
 
     fun getLastIdPlusOne(collectionName: String): String? {
-        val res = getLastDocument(collectionName = "Items")
+        val res = getLastDocument(collectionName = collectionName)
 //        println("res = ${res!!.toMap()}")
         val items = res?.getDictionary("Items")
-//        println("items = $items")
-        val id = items!!.getString("id")!!.toInt()+1
+        println("items = $items")
+        val id = if (items!=null) items?.getString("id")!!.toInt()+1 else 1
 //    val id = res.getString("id")
 //        println("last id = $id")
         return id.toString()

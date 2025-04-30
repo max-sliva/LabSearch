@@ -48,7 +48,7 @@ fun searchItem( //возвращает нужную картинку для ис
 
 @Composable
 @Preview
-fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceOrItemSelect: (place: StorageName, foundItem: String ) -> Unit) {
+fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<String>?, onPlaceOrItemSelect: (StorageName, String) -> Unit) {
     var text by remember { mutableStateOf("Найти") }
     var searchValue by remember { //объект для работы с текстом, для TextField
         mutableStateOf("") //его начальное значение
@@ -155,10 +155,10 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceOrItemSelect: (pl
                     )
                 }
             }
-            val file = loadImageFrom("src/main/resources/$imageSrc")
+            val labImageFile = loadImageFrom("src/main/resources/$imageSrc")
 //            Row(){
                 Image(
-                    bitmap = file,
+                    bitmap = labImageFile,
 //                painter = painterResource(imageSrc),
 //                painter = imageReso,
                     contentDescription = "",
@@ -195,15 +195,28 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, onPlaceOrItemSelect: (pl
                         }
                         .rotate(imageRotate.value)
                 )
-            Button(
+            Button(  //todo сделать возможность поворота изображения лаборатории в зависимости от положения устройства с программой
                 onClick = {
                     imageRotate.value+=90
                     if (imageRotate.value==360f) imageRotate.value = 0f
                     println("lab image rotate = $imageRotate.value")
-                }
+                },
+                enabled = false
+
             ){
                 Text(text = "rotate")
             }
+            var  itemImageFile = loadImageFrom("Images/${itemImage?.value}.png")
+            if (itemImage==null)
+             itemImageFile = loadImageFrom("Images/default.png")
+
+            Image(
+                bitmap = itemImageFile,
+                contentDescription = "",
+//                    contentScale = ContentScale.Fit,
+                contentScale = ContentScale.FillHeight,
+
+            )
 //                LazyColumn (modifier = Modifier
 //                    .wrapContentWidth()
 //                ) {
@@ -275,7 +288,7 @@ fun main() = application {
         state = windowState,
         onCloseRequest = ::exitApplication
     ) {
-        LabRenderView(null){ storageName, item ->
+        LabRenderView(null, null){ storageName, item ->
 
         }
     }

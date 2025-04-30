@@ -3,7 +3,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,7 +30,6 @@ import java.awt.FileDialog
 import java.io.File
 import java.nio.file.Paths
 import kotlin.enums.EnumEntries
-import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.text.style.TextAlign
 
 @Composable
@@ -96,7 +94,7 @@ fun ItemsGUI(
         var itemForEdit = remember { mutableStateOf(Item(name = "", place = Place(name = StorageName.CUSTOM_PLACE))) }
         var id = remember { mutableStateOf("") }
         if (isChecked.value) {
-            var fieldNames = objList[0].getListOfFieldNames()
+            var fieldNames = if (objList.isNotEmpty()) objList[0].getListOfFieldNames() else Item("", "", Place()).getListOfFieldNames()
             MakeInputRow(id = id, itemForEdit, fieldNames, btnActive, dbWork, updateDb) { item ->
                 dbWork.addObjectToCollection(item.id, item, "Items")
                 isChecked.value = false
@@ -178,11 +176,11 @@ fun PlaceSelectComboBox(
 fun MakeInputRow( //создаем ряд с полями для ввода данных
     id: MutableState<String>,
     item: MutableState<Item>?,
-    fieldNames_: List<String>,
+    fieldNames_: List<String>?,
     btnActive: MutableState<Boolean>,
     dbWork: DBwork,
     updateDb: MutableState<Boolean>,
-    onUpdate: (x: Item) -> Unit
+    onUpdate: (Item) -> Unit
 ) {
 //    var btnActive1 = btnActive
     Row(
@@ -193,7 +191,7 @@ fun MakeInputRow( //создаем ряд с полями для ввода да
             .border(2.dp, Color.Gray)
     ) {
 //        var fieldNames = fieldNames_
-        var fieldNames = fieldNames_.filter { it != "id" }
+        var fieldNames = fieldNames_?.filter { it != "id" }
         var mapForItemFields =
             if (id.value == "") remember { mutableStateMapOf("name" to "", "place" to "", "info" to "") }
             else remember {
@@ -203,7 +201,7 @@ fun MakeInputRow( //создаем ряд с полями для ввода да
                     "info" to item.value.info
                 )
             }
-        fieldNames.forEach { field ->
+        fieldNames?.forEach { field ->
             if (field != "place")
                 TextField(
                     value = mapForItemFields[field]!!,
@@ -263,7 +261,8 @@ fun MakeInputRow( //создаем ряд с полями для ввода да
                 onClick = {
                     println("mapForItemFields = $mapForItemFields")
                     var lastId = id.value
-                    if (lastId == "") lastId = dbWork.getLastIdPlusOne("Items")!! else {
+                    if (lastId == "") lastId = dbWork.getLastIdPlusOne("Items")!!
+                    else {
                         id.value = ""
                         dbWork.deleteObjectFromCollectiobById(lastId, "Items")
                     }
@@ -356,9 +355,9 @@ fun TableForItems(
             }
         )
 //    var borderColor by remember{ mutableStateOf(Color(0xff1e63b2)) }
-    val fieldNames = objList[0].getListOfFieldNames()
+    val fieldNames = if (objList.isNotEmpty()) objList[0].getListOfFieldNames() else null
     println("fieldNames = $fieldNames")
-    fieldNames.forEach {
+    fieldNames?.forEach {
         if (!mapForFieldNames.keys.contains(it)) mapForFieldNames[it] = true
     }
     var mDisplayMenu = remember { mutableStateOf(false) }
@@ -385,7 +384,7 @@ fun TableForItems(
 private fun MakeTableCaption(
     mDisplayMenu: MutableState<Boolean>,
     mapForFieldNames: SnapshotStateMap<String, Boolean>,
-    fieldNames: List<String>
+    fieldNames: List<String>?
 ) {
 //    var mDisplayMenu1 = mDisplayMenu
     Row( //строка с названиями полей
@@ -408,7 +407,7 @@ private fun MakeTableCaption(
             },
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        fieldNames.forEach {
+        fieldNames?.forEach {
             if (mapForFieldNames[it]!!)
                 Text(
                     text = it,
@@ -423,12 +422,12 @@ private fun MakeTableCaption(
                 expanded = mDisplayMenu.value,
                 onDismissRequest = { mDisplayMenu.value = false }
             ) {
-//                mapForFieldNames.forEach { (name, checkValue) ->
-                fieldNames.forEach { name ->
+    //                mapForFieldNames.forEach { (name, checkValue) ->
+                fieldNames?.forEach { name ->
                     DropdownMenuItem(
                         content = {
                             Checkbox(
-//                                checked = checkValue,
+                                //                                checked = checkValue,
                                 checked = mapForFieldNames[name]==true,
                                 onCheckedChange = { checked ->
                                     mapForFieldNames[name] = checked
@@ -468,42 +467,45 @@ private fun MakeTableContent( //содержимое таблицы на осн�
     onPlaceSelect: (StorageName) -> Unit
 ) {
     var clickedItemId1 = clickedItemId
-    LazyVerticalGrid(
+    if (mapForFieldNames.isNotEmpty()) {
+        LazyVerticalGrid(
 //        columns = GridCells.Fixed(itemColumns),
-        columns = GridCells.Fixed(mapForFieldNames.filterValues { it }.size), //кол-во колонок в зависимости от выбранных в контекстном меню
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = Modifier
-            .border(2.dp, Color.Black)
-            .padding(4.dp)
-    ) {
-        if (objList.size > 0) {
-            println("TableForItems updated")
-            objList.forEach { obj ->
-                val rowWithID = obj.getListOfValues() //все поля
-                val row = obj.getListOfValues().filterIndexed { index, s -> //только нужные согласно выбору чекбоксов
-                    val colName = mapColnamesToNumber[index]
-                    mapForFieldNames[colName]!!
-                }
-                items(row.size) { index ->
+            columns = GridCells.Fixed(mapForFieldNames.filterValues { it }.size), //кол-во колонок в зависимости от выбранных в контекстном меню
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier
+                .border(2.dp, Color.Black)
+                .padding(4.dp)
+        ) {
+            if (objList.size > 0) {
+                println("TableForItems updated")
+                objList.forEach { obj ->
+                    val rowWithID = obj.getListOfValues() //все поля
+                    val row =
+                        obj.getListOfValues().filterIndexed { index, s -> //только нужные согласно выбору чекбоксов
+                            val colName = mapColnamesToNumber[index]
+                            mapForFieldNames[colName]!!
+                        }
+                    items(row.size) { index ->
 //                items(mapForFieldNames.filterValues{ it }.size) { index ->
 //                    val colName = mapColnamesToNumber[index]
 //                    if (mapForFieldNames[colName]!!) {
-                    TableRowItem(
-                        rowWithID,
-                        isChecked,
-                        id,
-                        clickedItemId1,
-                        itemForEdit,
-                        obj,
-                        delId,
-                        showDialog,
-                        row,
-                        index,
-                        curPlace,
-                        onPlaceSelect
-                    )
+                        TableRowItem(
+                            rowWithID,
+                            isChecked,
+                            id,
+                            clickedItemId1,
+                            itemForEdit,
+                            obj,
+                            delId,
+                            showDialog,
+                            row,
+                            index,
+                            curPlace,
+                            onPlaceSelect
+                        )
 //                    }
+                    }
                 }
             }
         }

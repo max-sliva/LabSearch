@@ -24,7 +24,7 @@ class ExcelWork(private val filePath: String) {
                     }
 
                     for (cell in row) { // Iterate over cells in the row
-                        when (cell.cellType) {
+                        when (cell.cellType) { //todo сделать массив из объектов Item и туда вставлять объекты с нужными полями
                             CellType.STRING -> if (cell.stringCellValue.length<16) print(" | String: ${cell.stringCellValue} ")
                                                 else print("| String: ${cell.stringCellValue.substring(0..15)}")
                             CellType.NUMERIC -> {
@@ -116,12 +116,12 @@ class ExcelWork(private val filePath: String) {
                         // Save the image
                         val outputFile = File(
                           //  outputDir,
-                            "image_${sheetIndex}_${targetRow}_${targetCol}_$index.$extension"
+                            "Images/image_${sheetIndex}_${targetRow}_${targetCol}_$index.$extension"
                         )
                         FileOutputStream(outputFile).use { fos ->
                             fos.write(imageBytes)
                         }
-                        println("Saved image: ${outputFile.absolutePath}")
+                        println(" Saved image: ${outputFile.absolutePath}")
                     }
                 }
             }

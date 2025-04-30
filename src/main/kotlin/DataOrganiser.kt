@@ -26,8 +26,8 @@ fun OrganiserGUI(dbWork: DBwork) {
                 modifier = Modifier
                     .weight(2f)
             ) {
-                //todo сделать возможность поворота изображения лаборатории в зависимости от положения устройства с программой
-                LabRenderView(curPlace) { place, selItem -> //todo добавить selItem в параметры здесь и в TabPane и далее по списку, чтобы выделять в таблице при поиске по вводу слева
+                var itemImage = remember { mutableStateOf("default") }
+                LabRenderView(curPlace, itemImage) { place, selItem -> //todo добавить selItem в параметры здесь и в TabPane и далее по списку, чтобы выделять в таблице при поиске по вводу слева
                     curPlace.value = place
                     selectedItem.value = selItem
                     val itemsInPlace = if (place != StorageName.CUSTOM_PLACE) dbWork.getAllObjectsForPlace(
@@ -121,6 +121,7 @@ fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: Mutable
 
 fun main() = application {
     val dbWork = DBwork()
+//    dbWork.clearCollection("Items")
 //    dbWork.getAllCollectionsFromDB()
     println("-----------------------------------------------------------")
 //    dbWork.deleteObjectFromCollectiobById("1", "Items")
