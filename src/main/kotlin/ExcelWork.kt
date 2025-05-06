@@ -11,6 +11,17 @@ import org.apache.poi.xssf.usermodel.XSSFPicture
 import java.io.File
 import java.io.IOException
 class ExcelWork(private val filePath: String) {
+    private fun setItemField(cellIndexInRow: Int, itemInRow: Item, stringCellValue: String): Item { //todo дописать функцию
+        when (cellIndexInRow){
+            1 -> {itemInRow.name = stringCellValue}
+            2 -> {}
+            3 -> {}
+            4 -> {}
+            6 -> {}
+        }
+        return itemInRow
+    }
+
     fun readXlsxRow(sheetIndex: Int = 0, rowIndex: Int) {
         try {
             FileInputStream(filePath).use { fis ->
@@ -22,11 +33,20 @@ class ExcelWork(private val filePath: String) {
                         println("Row $rowIndex does not exist.")
                         return
                     }
-
+                    var itemInRow:Item = Item("", "", Place())
+//                    var name = ""
+//                    var place = ""
+//                    var info = ""
+//                    var img = ""
                     for (cell in row) { // Iterate over cells in the row
+                        val cellIndexInRow = row.indexOf(cell)
+                        print(" || cell's number in row = $cellIndexInRow ") //1 - name, 2 - info, 3 - кол-во, 4 - img, 6 - place
                         when (cell.cellType) { //todo сделать массив из объектов Item и туда вставлять объекты с нужными полями
-                            CellType.STRING -> if (cell.stringCellValue.length<16) print(" | String: ${cell.stringCellValue} ")
-                                                else print("| String: ${cell.stringCellValue.substring(0..15)}")
+                            CellType.STRING -> {
+                                if (cell.stringCellValue.length<16) print(" | String: ${cell.stringCellValue} ")
+                                else print("| String: ${cell.stringCellValue.substring(0..15)}")
+                                itemInRow = setItemField(cellIndexInRow, itemInRow, cell.stringCellValue)
+                            }
                             CellType.NUMERIC -> {
                                 if (DateUtil.isCellDateFormatted(cell)) {
                                     print(" | Date: ${cell.dateCellValue}")
