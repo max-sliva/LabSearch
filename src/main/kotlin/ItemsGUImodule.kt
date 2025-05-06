@@ -68,7 +68,7 @@ fun ItemsGUI(
 //                onFileSelected(bytes, file.name)
                         println("file = ${file.name}")
                         val excelWork = ExcelWork(file.path)
-                        excelWork.readCellsFromExcel(1, 2)
+                        excelWork.readCellsFromExcel(1, 2) //todo получаем массив из Item-ов и вставляем их в БД, проверяя, чтобы там не было таких
 //                        excelWork.readXlsxRow(1, 2)
 
 //                        excelWork.extractImagesFromExcel()

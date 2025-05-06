@@ -11,18 +11,18 @@ import org.apache.poi.xssf.usermodel.XSSFPicture
 import java.io.File
 import java.io.IOException
 class ExcelWork(private val filePath: String) {
-    private fun setItemField(cellIndexInRow: Int, itemInRow: Item, stringCellValue: String): Item { //todo дописать функцию
-        when (cellIndexInRow){
+    private fun setItemField(cellIndexInRow: Int, itemInRow: Item, stringCellValue: String): Item {
+        when (cellIndexInRow){ //1 - name, 2 - info, 3 - кол-во, 4 - img, 6 - place
             1 -> {itemInRow.name = stringCellValue}
-            2 -> {}
-            3 -> {}
-            4 -> {}
-            6 -> {}
+            2 -> {itemInRow.info = stringCellValue}
+            3 -> {itemInRow.info += ", кол-во: $stringCellValue"}
+            4 -> {itemInRow.img = stringCellValue}
+            6 -> {itemInRow.place = Place(name = StorageName.valueOf(stringCellValue))}
         }
         return itemInRow
     }
 
-    fun readXlsxRow(sheetIndex: Int = 0, rowIndex: Int) {
+    fun readXlsxRow(sheetIndex: Int = 0, rowIndex: Int) { //todo должен возвращать Item
         try {
             FileInputStream(filePath).use { fis ->
                 WorkbookFactory.create(fis).use { workbook ->
@@ -41,7 +41,7 @@ class ExcelWork(private val filePath: String) {
                     for (cell in row) { // Iterate over cells in the row
                         val cellIndexInRow = row.indexOf(cell)
                         print(" || cell's number in row = $cellIndexInRow ") //1 - name, 2 - info, 3 - кол-во, 4 - img, 6 - place
-                        when (cell.cellType) { //todo сделать массив из объектов Item и туда вставлять объекты с нужными полями
+                        when (cell.cellType) {
                             CellType.STRING -> {
                                 if (cell.stringCellValue.length<16) print(" | String: ${cell.stringCellValue} ")
                                 else print("| String: ${cell.stringCellValue.substring(0..15)}")
@@ -52,6 +52,7 @@ class ExcelWork(private val filePath: String) {
                                     print(" | Date: ${cell.dateCellValue}")
                                 } else {
                                     print(" | Number: ${cell.numericCellValue}")
+                                    itemInRow = setItemField(cellIndexInRow, itemInRow, cell.numericCellValue.toInt().toString())
                                 }
                             }
                             CellType.BOOLEAN -> print(" | Boolean: ${cell.booleanCellValue}")
@@ -59,11 +60,12 @@ class ExcelWork(private val filePath: String) {
                             else -> {
                                 print(" | Unsupported cell type")
 //                                getImageFromCell(sheetIndex, rowIndex, cell.columnIndex)
-                                extractImageFromCell(sheetIndex, rowIndex, cell.columnIndex)
+                                itemInRow.img = extractImageFromCell(sheetIndex, rowIndex, cell.columnIndex)
                             }
                         }
                     }
                     println()
+                    println("item: $itemInRow")
                 }
             }
         } catch (e: IOException) {
@@ -81,7 +83,7 @@ class ExcelWork(private val filePath: String) {
     }
 
 
-    fun readCellsFromExcel(sheetIndex: Int = 0, firstRow: Int = 2) {
+    fun readCellsFromExcel(sheetIndex: Int = 0, firstRow: Int = 2) { //todo должен возвращать массив из объектов типа Item
         var rowsNum = 0
         FileInputStream(filePath).use { fis ->
             WorkbookFactory.create(fis).use { workbook ->
@@ -90,6 +92,7 @@ class ExcelWork(private val filePath: String) {
             }
         }
         println("rowsNum = $rowsNum")
+        //todo сделать массив из объектов Item и туда вставлять объекты с нужными полями
         for (i in firstRow..rowsNum){
             readXlsxRow(sheetIndex, i)
         }
@@ -113,14 +116,15 @@ class ExcelWork(private val filePath: String) {
         sheetIndex: Int, // 0-based sheet index (e.g., 0 = first sheet)
         targetRow: Int, // 0-based row index
         targetCol: Int // 0-based column index
-    ) {
+    ): String {
+        var imgPath = ""
         val workbook = WorkbookFactory.create(File(filePath)).use { workbook ->
             if (workbook !is XSSFWorkbook) {
                 throw IllegalArgumentException("Only XLSX files are supported")
             }
 
             val sheet = workbook.getSheetAt(sheetIndex)
-            val drawings = sheet.drawingPatriarch ?: return
+            val drawings = sheet.drawingPatriarch ?: return ""
 
             // Iterate through all images in the sheet
             drawings.forEachIndexed { index, drawing ->
@@ -142,10 +146,12 @@ class ExcelWork(private val filePath: String) {
                             fos.write(imageBytes)
                         }
                         println(" Saved image: ${outputFile.absolutePath}")
+                        imgPath = outputFile.absolutePath
                     }
                 }
             }
         }
+        return imgPath
     }
 
 //    fun getImageFromCell(sheetIndex: Int, // 0-based sheet index

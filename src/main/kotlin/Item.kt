@@ -1,9 +1,9 @@
 import androidx.compose.runtime.Immutable
 
 @Immutable
-class Item( id: String = "", var name: String, var place: Place, info: String = "", img: String="default"): Thing(id ,info){
+class Item( id: String = "", var name: String, var place: Place, info: String = "", var img: String="default"): Thing(id ,info){
     override fun toString(): String {
-        return "id = $id,  name = $name,  place = ${place.name},  info = $info"
+        return "id = $id,  name = $name,  place = ${place.name},  info = $info , img = $img"
     }
 
     fun getListOfValues(): List<String> {
