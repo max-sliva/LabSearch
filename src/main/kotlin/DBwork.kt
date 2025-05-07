@@ -66,7 +66,6 @@ class DBwork {
         return objList
     }
 
-    //todo сделать ф-ию для удаления всех записей в коллекции
     fun clearCollection(collectionName: String){
         val items = getAllObjectsForCollection(collectionName)
         items.forEach {

@@ -22,7 +22,8 @@ class ExcelWork(private val filePath: String) {
         return itemInRow
     }
 
-    fun readXlsxRow(sheetIndex: Int = 0, rowIndex: Int) { //todo должен возвращать Item
+    fun readXlsxRow(sheetIndex: Int = 0, rowIndex: Int): Item? {
+        var itemInRow:Item = Item("", "", Place())
         try {
             FileInputStream(filePath).use { fis ->
                 WorkbookFactory.create(fis).use { workbook ->
@@ -31,34 +32,33 @@ class ExcelWork(private val filePath: String) {
                     val row = sheet.getRow(rowIndex) // Get the target row
                     if (row == null) {
                         println("Row $rowIndex does not exist.")
-                        return
+                        return null
                     }
-                    var itemInRow:Item = Item("", "", Place())
 //                    var name = ""
 //                    var place = ""
 //                    var info = ""
 //                    var img = ""
                     for (cell in row) { // Iterate over cells in the row
                         val cellIndexInRow = row.indexOf(cell)
-                        print(" || cell's number in row = $cellIndexInRow ") //1 - name, 2 - info, 3 - кол-во, 4 - img, 6 - place
+//                        print(" || cell's number in row = $cellIndexInRow ") //1 - name, 2 - info, 3 - кол-во, 4 - img, 6 - place
                         when (cell.cellType) {
                             CellType.STRING -> {
-                                if (cell.stringCellValue.length<16) print(" | String: ${cell.stringCellValue} ")
-                                else print("| String: ${cell.stringCellValue.substring(0..15)}")
+//                                if (cell.stringCellValue.length<16) print(" | String: ${cell.stringCellValue} ")
+//                                else print("| String: ${cell.stringCellValue.substring(0..15)}")
                                 itemInRow = setItemField(cellIndexInRow, itemInRow, cell.stringCellValue)
                             }
                             CellType.NUMERIC -> {
                                 if (DateUtil.isCellDateFormatted(cell)) {
                                     print(" | Date: ${cell.dateCellValue}")
                                 } else {
-                                    print(" | Number: ${cell.numericCellValue}")
+//                                    print(" | Number: ${cell.numericCellValue}")
                                     itemInRow = setItemField(cellIndexInRow, itemInRow, cell.numericCellValue.toInt().toString())
                                 }
                             }
                             CellType.BOOLEAN -> print(" | Boolean: ${cell.booleanCellValue}")
                             CellType.FORMULA -> handleFormulaCell(cell)
                             else -> {
-                                print(" | Unsupported cell type")
+//                                print(" | Unsupported cell type")
 //                                getImageFromCell(sheetIndex, rowIndex, cell.columnIndex)
                                 itemInRow.img = extractImageFromCell(sheetIndex, rowIndex, cell.columnIndex)
                             }
@@ -71,6 +71,7 @@ class ExcelWork(private val filePath: String) {
         } catch (e: IOException) {
             e.printStackTrace()
         }
+        return itemInRow
     }
 
     private fun handleFormulaCell(cell: Cell) {
@@ -83,7 +84,8 @@ class ExcelWork(private val filePath: String) {
     }
 
 
-    fun readCellsFromExcel(sheetIndex: Int = 0, firstRow: Int = 2) { //todo должен возвращать массив из объектов типа Item
+    fun readCellsFromExcel(sheetIndex: Int = 0, firstRow: Int = 2): ArrayList<Item?> {
+        val itemsList = ArrayList<Item?>()
         var rowsNum = 0
         FileInputStream(filePath).use { fis ->
             WorkbookFactory.create(fis).use { workbook ->
@@ -92,10 +94,10 @@ class ExcelWork(private val filePath: String) {
             }
         }
         println("rowsNum = $rowsNum")
-        //todo сделать массив из объектов Item и туда вставлять объекты с нужными полями
         for (i in firstRow..rowsNum){
-            readXlsxRow(sheetIndex, i)
+            itemsList.add(readXlsxRow(sheetIndex, i))
         }
+        return itemsList
     }
 
     fun getDrawingsFromExcelSheet(sheetIndex: Int = 0): XSSFDrawing? {
@@ -145,7 +147,7 @@ class ExcelWork(private val filePath: String) {
                         FileOutputStream(outputFile).use { fos ->
                             fos.write(imageBytes)
                         }
-                        println(" Saved image: ${outputFile.absolutePath}")
+//                        println(" Saved image: ${outputFile.absolutePath}")
                         imgPath = outputFile.absolutePath
                     }
                 }

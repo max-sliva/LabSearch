@@ -53,7 +53,7 @@ fun ItemsGUI(
         ) {
             Button(
                 onClick = {
-                    println("load") //todo подумать над импортом из файла
+                    println("load")
                     val currentDir = File(System.getProperty("user.dir"))
                     val currentDir2 = Paths.get("").toAbsolutePath().toString()
                     val fileDialog = FileDialog(null as ComposeWindow?, "Select File", FileDialog.LOAD)
@@ -68,9 +68,10 @@ fun ItemsGUI(
 //                onFileSelected(bytes, file.name)
                         println("file = ${file.name}")
                         val excelWork = ExcelWork(file.path)
-                        excelWork.readCellsFromExcel(1, 2) //todo получаем массив из Item-ов и вставляем их в БД, проверяя, чтобы там не было таких
-//                        excelWork.readXlsxRow(1, 2)
-
+                        val itemsList = excelWork.readCellsFromExcel(1, 2)
+                        //todo вставлять объекты из массива в БД, проверяя, чтобы там не было таких
+                        println("itemsList: ")
+                        itemsList.forEach { println(it) }
 //                        excelWork.extractImagesFromExcel()
                     }
                 },
