@@ -2,6 +2,7 @@ import androidx.compose.animation.animateColor
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -13,13 +14,16 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isPrimaryPressed
 import androidx.compose.ui.input.pointer.isSecondaryPressed
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 //import androidx.compose.ui.text.style.TextAlign
@@ -69,9 +73,10 @@ fun ItemsGUI(
                         println("file = ${file.name}")
                         val excelWork = ExcelWork(file.path)
                         val itemsList = excelWork.readCellsFromExcel(1, 2)
-                        //todo вставлять объекты из массива в БД, проверяя, чтобы там не было таких
-                        println("itemsList: ")
-                        itemsList.forEach { println(it) }
+//                        println("itemsList: ")
+//                        itemsList.forEach { println(it) }
+                        dbWork.addAllItemsFromListToCollection(itemsList, "Items")
+                        //todo уведомлять таблицу, что обновились данные
 //                        excelWork.extractImagesFromExcel()
                     }
                 },
@@ -478,7 +483,7 @@ private fun MakeTableContent( //содержимое таблицы на осн�
                 .border(2.dp, Color.Black)
                 .padding(4.dp)
         ) {
-            if (objList.size > 0) {
+            if (objList.isNotEmpty()) {
                 println("TableForItems updated")
                 objList.forEach { obj ->
                     val rowWithID = obj.getListOfValues() //все поля
@@ -513,6 +518,7 @@ private fun MakeTableContent( //содержимое таблицы на осн�
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun TableRowItem(
     rowWithID: List<String>,
@@ -567,33 +573,44 @@ private fun TableRowItem(
         ) { pulsing ->
             if (pulsing) Color.Green else Color(0xff1e63b2)
         }
-        Text(
-            text = row[index],
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                //                        .padding(start=20.dp)
-                .border(
-                    if (clickedItemId1.value == rowWithID[0]) 4.dp else 2.dp,
-                    borderColor.value
-                )
-                //                                .onClick {
-                //                                }
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            val button = event.buttons
-                            if (button.isSecondaryPressed || button.isPrimaryPressed) {
-                                println("item clicked with id = ${rowWithID[0]} place = ${rowWithID[2]}")
-                                clickedItemId1.value = rowWithID[0]
-                                curPlace.value = StorageName.valueOf(rowWithID[2])
-                                onPlaceSelect(curPlace.value)
-                                clickedItemId1.value = rowWithID[0]
+        TooltipArea( //todo исправить отображение границ ячейки и самого всплывающего сообщения (чтобы в несколько строк был)
+            tooltip = { Text(row[index]) },
+            delayMillis = 500, // in milliseconds
+            tooltipPlacement = TooltipPlacement.CursorPoint(
+                offset = DpOffset(0.dp, 16.dp)
+            ), content = {
+                Text(
+                    text = row[index],
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        //                        .padding(start=20.dp)
+                        .border(
+                            if (clickedItemId1.value == rowWithID[0]) 4.dp else 2.dp,
+                            borderColor.value
+                        )
+                        //                                .onClick {
+                        //                                }
+                        .pointerInput(Unit) {
+                            awaitPointerEventScope {
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    val button = event.buttons
+                                    if (button.isSecondaryPressed || button.isPrimaryPressed) {
+                                        println("item clicked with id = ${rowWithID[0]} place = ${rowWithID[2]}")
+                                        clickedItemId1.value = rowWithID[0]
+                                        curPlace.value = StorageName.valueOf(rowWithID[2])
+                                        onPlaceSelect(curPlace.value)
+                                        clickedItemId1.value = rowWithID[0]
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-            //                            .border(2.dp, color = animatedColor,)
-        )
+//                        .onPointerEvent(PointerEventType.Enter) {
+//                            println("cell text =${row[index]} ")
+//                        }
+                    //                            .border(2.dp, color = animatedColor,)
+                )
+            })
     }
 }

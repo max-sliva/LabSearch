@@ -2,7 +2,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.couchbase.lite.*
 import com.google.gson.Gson
-import com.couchbase.lite.Collection
+
 @Immutable
 class DBwork {
     var db: Database
@@ -109,6 +109,25 @@ class DBwork {
                 val collectionItems = db.getCollection("Items")
                 println("in collection 'Items' ${collectionItems!!.count} objects")
             }
+        }
+    }
+
+    fun isItemInCollection(name: String?, collection: String): Boolean {
+        val itemsInCollection = getAllObjectsForCollection(collection)
+        itemsInCollection.forEach {
+            if ((it as Item).name==name) return true
+        }
+        return false
+    }
+
+    fun addAllItemsFromListToCollection(itemsList: ArrayList<Item?>, collection: String) {
+        itemsList.forEach {
+            if (!isItemInCollection(it?.name, collection)){
+                println("${it?.name} is adding to db")
+                val id = getLastIdPlusOne(collection)
+                it?.id = id!!
+                addObjectToCollection(it?.id!!, it, collection)
+            } else  println("${it?.name} is already in db")
         }
     }
 
