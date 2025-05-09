@@ -573,43 +573,49 @@ private fun TableRowItem(
         ) { pulsing ->
             if (pulsing) Color.Green else Color(0xff1e63b2)
         }
-        TooltipArea( //todo исправить отображение границ ячейки и самого всплывающего сообщения (чтобы в несколько строк был)
-            tooltip = { Text(row[index]) },
+        TooltipArea(
+            tooltip = {
+                        Surface(
+                            modifier = Modifier
+                                .width(400.dp) // Set explicit width
+                                .padding(8.dp), // Internal padding
+                            shape = RoundedCornerShape(8.dp)
+                        ) {Text(row[index]) }
+            },
             delayMillis = 500, // in milliseconds
             tooltipPlacement = TooltipPlacement.CursorPoint(
                 offset = DpOffset(0.dp, 16.dp)
-            ), content = {
+            ),
+            modifier = Modifier
+//                .border(2.dp, Color.Red),
+//                .padding(start = 5.dp)
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val button = event.buttons
+                            if (button.isSecondaryPressed || button.isPrimaryPressed) {
+                                println("item clicked with id = ${rowWithID[0]} place = ${rowWithID[2]}")
+                                clickedItemId1.value = rowWithID[0]
+                                curPlace.value = StorageName.valueOf(rowWithID[2])
+                                onPlaceSelect(curPlace.value)
+                                clickedItemId1.value = rowWithID[0]
+                                //todo добавить показ картинки с объектом
+                            }
+                        }
+                    }
+                }
+                .border(
+                    if (clickedItemId1.value == rowWithID[0]) 4.dp else 2.dp,
+                    borderColor.value
+                ),
+            content = {
                 Text(
                     text = row[index],
                     maxLines = 1,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
-                        //                        .padding(start=20.dp)
-                        .border(
-                            if (clickedItemId1.value == rowWithID[0]) 4.dp else 2.dp,
-                            borderColor.value
-                        )
-                        //                                .onClick {
-                        //                                }
-                        .pointerInput(Unit) {
-                            awaitPointerEventScope {
-                                while (true) {
-                                    val event = awaitPointerEvent()
-                                    val button = event.buttons
-                                    if (button.isSecondaryPressed || button.isPrimaryPressed) {
-                                        println("item clicked with id = ${rowWithID[0]} place = ${rowWithID[2]}")
-                                        clickedItemId1.value = rowWithID[0]
-                                        curPlace.value = StorageName.valueOf(rowWithID[2])
-                                        onPlaceSelect(curPlace.value)
-                                        clickedItemId1.value = rowWithID[0]
-                                    }
-                                }
-                            }
-                        }
-//                        .onPointerEvent(PointerEventType.Enter) {
-//                            println("cell text =${row[index]} ")
-//                        }
-                    //                            .border(2.dp, color = animatedColor,)
+                        .padding(start = 5.dp)
                 )
             })
     }
