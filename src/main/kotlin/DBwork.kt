@@ -9,7 +9,7 @@ class DBwork {
 
     init {
         CouchbaseLite.init()
-        println("Starting DB")
+        println("Starting DB in DBwork")
         val cfg = DatabaseConfiguration()
         db = Database("mydb", cfg)
 //        val collectionPlaces = database.createCollection("Places")
@@ -36,12 +36,13 @@ class DBwork {
                         val nameValue = dict.getString("name")
                         val placeValue = dict.getDictionary("place")!!.getString("name")
                         val infoValue = dict.getString("info")
+                        val imgValue = dict.getString("img")?:"default"
 //                        println("dict = $dict")
 //                        print("item id = $idValue,")
 //                        print("item name = $nameValue,")
 //                        println(" place name = $placeValue")
 //                        print("item info = $infoValue,")
-                        objList.add(Item(idValue!!, nameValue!!, Place(name=StorageName.valueOf(placeValue!!)), infoValue!!))
+                        objList.add(Item(idValue!!, nameValue!!, Place(name=StorageName.valueOf(placeValue!!)), infoValue!!, imgValue!!))
                     }
                     "Places" ->{
 

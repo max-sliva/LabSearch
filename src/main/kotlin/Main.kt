@@ -52,7 +52,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
     var text by remember { mutableStateOf("Найти") }
     var searchValue by remember { //объект для работы с текстом, для TextField
         mutableStateOf("") //его начальное значение
-    }
+    } //todo подумать, как картинку менять при выборе объекта
     val dataHolder = DataHolder()
     var storageNameToPngMap = dataHolder.getStorageNameToPngMap()
 //    var imageSrc by remember { mutableStateOf(storageNameToPngMap[StorageName.CUSTOM_PLACE]) }

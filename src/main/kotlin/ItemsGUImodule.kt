@@ -20,10 +20,8 @@ import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isPrimaryPressed
 import androidx.compose.ui.input.pointer.isSecondaryPressed
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 //import androidx.compose.ui.text.style.TextAlign
@@ -486,9 +484,10 @@ private fun MakeTableContent( //содержимое таблицы на осн�
             if (objList.isNotEmpty()) {
                 println("TableForItems updated")
                 objList.forEach { obj ->
+//                    val rowWithID = obj.getListOfValuesWithoutImg() //все поля
                     val rowWithID = obj.getListOfValues() //все поля
                     val row =
-                        obj.getListOfValues().filterIndexed { index, s -> //только нужные согласно выбору чекбоксов
+                        obj.getListOfValuesWithoutImg().filterIndexed { index, s -> //только нужные согласно выбору чекбоксов
                             val colName = mapColnamesToNumber[index]
                             mapForFieldNames[colName]!!
                         }
@@ -595,7 +594,7 @@ private fun TableRowItem(
                             val event = awaitPointerEvent()
                             val button = event.buttons
                             if (button.isSecondaryPressed || button.isPrimaryPressed) {
-                                println("item clicked with id = ${rowWithID[0]} place = ${rowWithID[2]}")
+                                println("item clicked with id = ${rowWithID[0]} image = ${if (rowWithID.size>4) rowWithID[4] else "no img"}")
                                 clickedItemId1.value = rowWithID[0]
                                 curPlace.value = StorageName.valueOf(rowWithID[2])
                                 onPlaceSelect(curPlace.value)

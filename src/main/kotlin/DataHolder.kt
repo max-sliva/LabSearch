@@ -3,9 +3,9 @@
  */
 class DataHolder {
     var things: Array<Thing>? = arrayOf(
-        Place(name=StorageName.BACK_SHELF), Place(name=StorageName.CENTER_TABLES), Item(name="Arduino uno", place=Place(name=StorageName.CENTER_TABLES)),
-        Item(name="Arduino Yun", place=Place(name=StorageName.BACK_SHELF)), Item(name="HexaPod", place=Place(name=StorageName.ROBOT_STAND)),
-        Item(name="QuadroPod", place=Place(name=StorageName.ROBOT_STAND))
+//        Place(name=StorageName.BACK_SHELF), Place(name=StorageName.CENTER_TABLES), Item(name="Arduino uno", place=Place(name=StorageName.CENTER_TABLES)),
+//        Item(name="Arduino Yun", place=Place(name=StorageName.BACK_SHELF)), Item(name="HexaPod", place=Place(name=StorageName.ROBOT_STAND)),
+//        Item(name="QuadroPod", place=Place(name=StorageName.ROBOT_STAND))
     )
 
     var itemsFromDB = arrayListOf<Item>()
