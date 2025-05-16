@@ -149,6 +149,9 @@ class ExcelWork(private val filePath: String) {
                         }
 //                        println(" Saved image: ${outputFile.absolutePath}")
                         imgPath = outputFile.absolutePath
+                        imgPath = imgPath.substringAfter("LabSearch\\")
+//                        println("imgPath after cut = $imgPath")
+//                        imgPath = imgPath.substringAfter("\\\\")
                     }
                 }
             }

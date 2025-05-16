@@ -22,11 +22,11 @@ fun OrganiserGUI(dbWork: DBwork) {
             modifier = Modifier.fillMaxSize(), //заполняем всё доступное пространство
 //            horizontalAlignment = Alignment.CenterHorizontally, //по центру горизонтально
         ) {
+            var itemImage = remember { mutableStateOf("Images/default.png") }
             Column(
                 modifier = Modifier
                     .weight(2f)
             ) {
-                var itemImage = remember { mutableStateOf("default") }
                 LabRenderView(curPlace, itemImage) { place, selItem -> //todo добавить selItem в параметры здесь и в TabPane и далее по списку, чтобы выделять в таблице при поиске по вводу слева
                     curPlace.value = place
                     selectedItem.value = selItem
@@ -44,9 +44,10 @@ fun OrganiserGUI(dbWork: DBwork) {
                 modifier = Modifier
                     .weight(3f)
             ) {
-                TabPane(objList, dbWork, curPlace){//todo возвращать не StorageName, а Item, а у него брать StorageName
-                    curPlace.value = it
-                    println("curPlace = ${curPlace.value}")
+                TabPane(objList, dbWork, curPlace){ place, imgPath ->
+                    curPlace.value = place
+                    itemImage.value = imgPath
+                    println("curPlace = ${curPlace.value}, imgPath = $imgPath")
                 }
             }
         }
@@ -85,7 +86,7 @@ fun PlacesGUI() {
 //}
 
 @Composable
-fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: MutableState<StorageName>, onPlaceSelect: (place: StorageName) -> Unit) {
+fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: MutableState<StorageName>, onPlaceSelect: (place: StorageName, imgPath: String) -> Unit) {
     //todo сделать нормальное оформление табов
     MaterialTheme {
         var tabIndex by remember { mutableStateOf(0) }
@@ -107,9 +108,9 @@ fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: Mutable
             }
 
             when (tabIndex) {
-                0 -> ItemsGUI(objList as SnapshotStateList<Item>, dbWork, curPlace){
-                    curPlace.value = it
-                    onPlaceSelect(it)
+                0 -> ItemsGUI(objList as SnapshotStateList<Item>, dbWork, curPlace){ place, imgPath ->
+                    curPlace.value = place
+                    onPlaceSelect(place, imgPath)
                 }
                 1 -> PlacesGUI()
 //            2 -> SettingsScreen()

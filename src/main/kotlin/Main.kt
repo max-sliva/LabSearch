@@ -52,7 +52,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
     var text by remember { mutableStateOf("Найти") }
     var searchValue by remember { //объект для работы с текстом, для TextField
         mutableStateOf("") //его начальное значение
-    } //todo подумать, как картинку менять при выборе объекта
+    }
     val dataHolder = DataHolder()
     var storageNameToPngMap = dataHolder.getStorageNameToPngMap()
 //    var imageSrc by remember { mutableStateOf(storageNameToPngMap[StorageName.CUSTOM_PLACE]) }
@@ -206,8 +206,9 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
             ){
                 Text(text = "rotate")
             }
-            var  itemImageFile = loadImageFrom("Images/${itemImage?.value}.png")
-            if (itemImage==null)
+//            var  itemImageFile = loadImageFrom("Images/${itemImage?.value}.png")
+            var  itemImageFile = loadImageFrom(itemImage!!.value)
+            if (itemImage==null || itemImage.value == "")
              itemImageFile = loadImageFrom("Images/default.png")
 
             Image(
@@ -276,7 +277,11 @@ private fun getStorageName(x: Double, y: Double, imageRotate: MutableState<Float
     }
 
 fun loadImageFrom(filePath: String): ImageBitmap { //ф-ия для получения изображения из файла
-    val bytes = Files.readAllBytes(Path.of(filePath)) // path relative to project root
+    println("filePath = $filePath")
+    var bytes: ByteArray
+    if (!filePath.isEmpty()) {
+        bytes = Files.readAllBytes(Path.of(filePath)) // path relative to project root
+    } else bytes = Files.readAllBytes(Path.of("Images/default.png"))
     return Image.makeFromEncoded(bytes).toComposeImageBitmap()
 }
 

@@ -39,7 +39,7 @@ fun ItemsGUI(
     objList: SnapshotStateList<Item>,
     dbWork: DBwork,
     curPlace: MutableState<StorageName>,
-    onPlaceSelect: (place: StorageName) -> Unit
+    onPlaceSelect: (place: StorageName, imgPath: String) -> Unit
 ) {
 //    MaterialTheme {
     println("ItemsGUI")
@@ -107,9 +107,9 @@ fun ItemsGUI(
             btnActive.value = false
             id.value = ""
         }
-        TableForItems(objList, updateDb, dbWork, isChecked, id, itemForEdit, curPlace) {
-            curPlace.value = it
-            onPlaceSelect(it)
+        TableForItems(objList, updateDb, dbWork, isChecked, id, itemForEdit, curPlace) { place, imgPath ->
+            curPlace.value = place
+            onPlaceSelect(place, imgPath)
         }
     }
 //    }
@@ -304,7 +304,7 @@ fun TableForItems(
     isChecked: MutableState<Boolean>,
     id: MutableState<String>,
     itemForEdit: MutableState<Item>?,
-    curPlace: MutableState<StorageName>, onPlaceSelect: (place: StorageName) -> Unit
+    curPlace: MutableState<StorageName>, onPlaceSelect: (place: StorageName, imgPath: String) -> Unit
 ) {
     val itemColumns = 4
 //    var objList = remember { mutableStateListOf<Item>() }
@@ -468,7 +468,7 @@ private fun MakeTableContent( //содержимое таблицы на осн�
     delId: MutableState<String>,
     showDialog: MutableState<Boolean>,
     curPlace: MutableState<StorageName>,
-    onPlaceSelect: (StorageName) -> Unit
+    onPlaceSelect: (StorageName, String) -> Unit
 ) {
     var clickedItemId1 = clickedItemId
     if (mapForFieldNames.isNotEmpty()) {
@@ -531,7 +531,7 @@ private fun TableRowItem(
     row: List<String>,
     index: Int,
     curPlace: MutableState<StorageName>,
-    onPlaceSelect: (StorageName) -> Unit
+    onPlaceSelect: (StorageName, String) -> Unit
 ) {
     ContextMenuArea(
         items = {
@@ -597,9 +597,8 @@ private fun TableRowItem(
                                 println("item clicked with id = ${rowWithID[0]} image = ${if (rowWithID.size>4) rowWithID[4] else "no img"}")
                                 clickedItemId1.value = rowWithID[0]
                                 curPlace.value = StorageName.valueOf(rowWithID[2])
-                                onPlaceSelect(curPlace.value)
+                                onPlaceSelect(curPlace.value, rowWithID[4])
                                 clickedItemId1.value = rowWithID[0]
-                                //todo добавить показ картинки с объектом
                             }
                         }
                     }
