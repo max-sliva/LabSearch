@@ -29,7 +29,7 @@ fun OrganiserGUI(dbWork: DBwork) {
             ) {
                 LabRenderView(curPlace, itemImage) { place, selItem -> //todo добавить selItem в параметры здесь и в TabPane и далее по списку, чтобы выделять в таблице при поиске по вводу слева
                     curPlace.value = place
-                    selectedItem.value = selItem
+                    selectedItem.value = selItem //todo передать selectedItem в TabPane
                     val itemsInPlace = if (place != StorageName.CUSTOM_PLACE) dbWork.getAllObjectsForPlace(
                         "Items",
                         place

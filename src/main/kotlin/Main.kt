@@ -277,9 +277,9 @@ private fun getStorageName(x: Double, y: Double, imageRotate: MutableState<Float
     }
 
 fun loadImageFrom(filePath: String): ImageBitmap { //ф-ия для получения изображения из файла
-    println("filePath = $filePath")
+    println("filePath in loadImageFrom = $filePath")
     var bytes: ByteArray
-    if (!filePath.isEmpty()) {
+    if (!filePath.isEmpty() && !filePath.contains("default")) {
         bytes = Files.readAllBytes(Path.of(filePath)) // path relative to project root
     } else bytes = Files.readAllBytes(Path.of("Images/default.png"))
     return Image.makeFromEncoded(bytes).toComposeImageBitmap()
