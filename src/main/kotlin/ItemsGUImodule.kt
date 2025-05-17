@@ -73,8 +73,9 @@ fun ItemsGUI(
                         val itemsList = excelWork.readCellsFromExcel(1, 2)
 //                        println("itemsList: ")
 //                        itemsList.forEach { println(it) }
+                        //todo сделать прогрессбар для импорта из Excel-файла, передавать в него из dbWork прогресс добавленных объектов
                         dbWork.addAllItemsFromListToCollection(itemsList, "Items")
-                        //todo уведомлять таблицу, что обновились данные
+                        updateDb.value = true
 //                        excelWork.extractImagesFromExcel()
                     }
                 },
@@ -304,7 +305,8 @@ fun TableForItems(
     isChecked: MutableState<Boolean>,
     id: MutableState<String>,
     itemForEdit: MutableState<Item>?,
-    curPlace: MutableState<StorageName>, onPlaceSelect: (place: StorageName, imgPath: String) -> Unit
+    curPlace: MutableState<StorageName>,
+    onPlaceSelect: (place: StorageName, imgPath: String) -> Unit
 ) {
     val itemColumns = 4
 //    var objList = remember { mutableStateListOf<Item>() }

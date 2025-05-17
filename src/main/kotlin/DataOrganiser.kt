@@ -27,14 +27,20 @@ fun OrganiserGUI(dbWork: DBwork) {
                 modifier = Modifier
                     .weight(2f)
             ) {
-                LabRenderView(curPlace, itemImage) { place, selItem -> //todo добавить selItem в параметры здесь и в TabPane и далее по списку, чтобы выделять в таблице при поиске по вводу слева
+                LabRenderView(curPlace, itemImage) { place, selItem ->
                     curPlace.value = place
-                    selectedItem.value = selItem //todo передать selectedItem в TabPane
-                    val itemsInPlace = if (place != StorageName.CUSTOM_PLACE) dbWork.getAllObjectsForPlace(
+                    selectedItem.value = selItem
+                    var itemsInPlace = if (place != StorageName.CUSTOM_PLACE) dbWork.getAllObjectsForPlace(
                         "Items",
                         place
                     ) else dbWork.getAllObjectsForCollection("Items")
                     objList.clear()
+                    if (selItem.isNotEmpty()) {
+                        println("---!!! item is found !!----")
+                        itemsInPlace = itemsInPlace.filter { (it as Item).name.contains(selItem) }
+                    } else {
+                        println("---!!! place is found !!----")
+                    }
                     objList.addAll(itemsInPlace)
                     println("itemsInPlace = $objList")
                     println("selectedItem = $selectedItem")
@@ -122,7 +128,9 @@ fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: Mutable
 
 fun main() = application {
     val dbWork = DBwork()
-//    dbWork.clearCollection("Items")
+    val maxId =  dbWork.findMaxNumericId("Items")
+    println("maxId = $maxId")
+    dbWork.clearCollection("Items")
 //    dbWork.getAllCollectionsFromDB()
     println("-----------------------------------------------------------")
 //    dbWork.deleteObjectFromCollectiobById("1", "Items")
@@ -131,8 +139,8 @@ fun main() = application {
 //    var objList = remember { mutableStateListOf<Item>()}
 //    dbWork.getAllObjectsForCollection("Items").also { objList = it as SnapshotStateList<Item> }
 //    objList = dbWork.getAllObjectsForCollection("Items") as SnapshotStateList<Item>
-    val id = dbWork.getLastId(collectionName = "Items")
-    println("last id = $id")
+//    val id = dbWork.getLastId(collectionName = "Items")
+//    println("last id = $id")
 
     val windowState = rememberWindowState(
         position = WindowPosition(Alignment.Center),

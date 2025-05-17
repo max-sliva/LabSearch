@@ -106,7 +106,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
                                     if (word.lowercase(Locale.getDefault()).startsWith(newText.lowercase())) accept = true
                                     //todo add check for several words
                                 }
-                                if (accept) namesList.add(it) //todo сделать фильтрацию объектов в таблице согласно списку подходящих
+                                if (accept) namesList.add(it)
                             }
                         } else isLazyRowVisible = false
                         if (namesList.isNotEmpty()) isLazyRowVisible = true
@@ -122,12 +122,15 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
                     storageNameToPngMap.forEach { k, v ->
                         if(v==imageSrc) place = k
                     }
+                    //todo сделать фильтрацию объектов в таблице согласно списку подходящих
+
                     curPlaceItems = things?.filter {
                         it is Item && it.place.name.toString() == place.toString()
+
                     } as MutableList<Thing>
-                    println("in place: $curPlaceItems")
+                    println("in place: $curPlaceItems  searchValue = $searchValue")
                     onPlaceOrItemSelect(curPlace!!.value, searchValue)
-                    if (imageSrc == "206.png") openDialog = true
+                    if (imageSrc == "206.png" && place!=StorageName.CUSTOM_PLACE) openDialog = true
                 }) {
                     Text(text)
                 }

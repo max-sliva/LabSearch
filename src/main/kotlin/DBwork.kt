@@ -1,7 +1,10 @@
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.couchbase.lite.*
+import com.couchbase.lite.QueryBuilder.select
 import com.google.gson.Gson
+//import com.couchbase.client.kotlin.query.dsl.Select.select
+import kotlinx.coroutines.flow.Flow
 
 @Immutable
 class DBwork {
@@ -22,7 +25,7 @@ class DBwork {
         val collection = db.getCollection(collectionName)
         var objList = SnapshotStateList<Thing>()
         val query: Query = QueryBuilder.select(SelectResult.all()).from(DataSource.collection(collection!!))
-            .orderBy(Ordering.property("id").ascending())
+        //    .orderBy(Ordering.property("id").ascending())
 
         query.execute().use { result ->
             for (row in result) {
@@ -88,7 +91,7 @@ class DBwork {
 
             // Get all collections for the current scope
             scope.collections.forEach { collection ->
-                println("Collection :: ${collection.name}")
+//                println("Collection :: ${collection.name}")
 //            println("in db ${ db.count } items")
                 // Create a SQL++ query to get all documents from the collection
                 val query: Query = QueryBuilder.select(SelectResult.all()).from(DataSource.collection(collection))
@@ -124,7 +127,7 @@ class DBwork {
     fun addAllItemsFromListToCollection(itemsList: ArrayList<Item?>, collection: String) {
         itemsList.forEach {
             if (!isItemInCollection(it?.name, collection)){
-                println("${it?.name} is adding to db")
+//                println("${it?.name} is adding to db")
                 val id = getLastIdPlusOne(collection)
                 it?.id = id!!
                 addObjectToCollection(it?.id!!, it, collection)
@@ -137,11 +140,43 @@ class DBwork {
         val collectionInDB = db.getCollection(collection)
         val gson = Gson()
         val json = gson.toJson(obj)
-        println("json = $json")
+//        println("json = $json")
         val mutableDoc = MutableDocument(obj.id).setJSON(json)
-        println("mutableDoc = $mutableDoc")
+//        println("mutableDoc = $mutableDoc")
         collectionInDB?.save(mutableDoc)
-        getAllCollectionsFromDB()
+        println("added obj with id = ${obj.id}")
+//        getAllCollectionsFromDB()
+    }
+
+    fun findMaxNumericId(collectionName: String): Long? {
+        val collection = db.getCollection(collectionName)
+        val query = QueryBuilder
+            .select(SelectResult.expression(Expression.property("id")))
+            .from(DataSource.collection(collection!!))
+            .where(Expression.property("id").isValued())
+
+        var maxId: Long? = null
+        try {
+            query.execute().use { resultSet ->
+                for (result in resultSet) {
+                    val idString = result.getString("id") ?: continue
+
+                    // Check if string is numeric without regex
+                    if (idString.isEmpty() || !idString.all { it.isDigit() }) {
+                        continue // Skip non-numeric values
+                    }
+
+                    idString.toLongOrNull()?.let { numericId ->
+                        if (maxId == null || numericId > maxId!!) {
+                            maxId = numericId
+                        }
+                    }
+                }
+            }
+        } catch (e: CouchbaseLiteException) {
+            e.printStackTrace()
+        }
+        return maxId
     }
 
     fun getLastDocument(collectionName: String): Result? {
@@ -150,6 +185,7 @@ class DBwork {
             val query = QueryBuilder.select(SelectResult.all())
                 .from(DataSource.collection(collection!!))
                 .orderBy(Ordering.property("id").descending()) // Replace "timestamp" with your sort field
+//                .orderBy(Ordering.property(Meta.id).descending()) // Replace "timestamp" with your sort field
                 .limit(Expression.intValue(1)) // Limit to one document
 
             val resultSet = query.execute()
@@ -169,15 +205,21 @@ class DBwork {
         return id
     }
 
-    fun getLastIdPlusOne(collectionName: String): String? {
-        val res = getLastDocument(collectionName = collectionName)
-//        println("res = ${res!!.toMap()}")
-        val items = res?.getDictionary("Items")
-        println("items = $items")
-        val id = if (items!=null) items?.getString("id")!!.toInt()+1 else 1
-//    val id = res.getString("id")
+//    fun getLastIdPlusOne(collectionName: String): String? {
+//        val res = getLastDocument(collectionName = collectionName)
+////        println("res = ${res!!.toMap()}")
+//        val items = res?.getDictionary("Items")
+////        println("items = $items")
+//        val id = if (items!=null) items?.getString("id")!!.toInt()+1 else 1
+////    val id = res.getString("id")
 //        println("last id = $id")
-        return id.toString()
+//        return id.toString()
+//    }
+
+    fun getLastIdPlusOne(collectionName: String): String? {
+        val maxIdPlusOne = (findMaxNumericId("Items")?:0)+1
+        return maxIdPlusOne.toString()
+
     }
 
     fun deleteObjectFromCollectiobById(id: String, collection: String) {
