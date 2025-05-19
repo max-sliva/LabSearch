@@ -33,6 +33,55 @@ import java.io.File
 import java.nio.file.Paths
 import kotlin.enums.EnumEntries
 import androidx.compose.ui.text.style.TextAlign
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+@Composable
+fun ProgressAlertDialogExample(itemsTotal: MutableState<Int>, addedItemsCount: MutableState<Int>) {
+    var showDialog by remember { mutableStateOf(false) }
+    var progress by remember { mutableStateOf(0f) }
+    val scope = rememberCoroutineScope()
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { /* Prevent dismiss or handle as needed */ },
+            title = { Text("Loading...") },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    LinearProgressIndicator(
+                        progress = progress,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(text = "Progress: ${(progress * 100).toInt()}%")
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showDialog = false },
+                    enabled = progress >= 1f
+                ) {
+                    Text("Done")
+                }
+            }
+        )
+    }
+
+    Button(onClick = {
+        showDialog = true
+        progress = 0f
+        scope.launch {
+            while (progress < 1f) {
+                delay(100)
+                progress += 0.05f
+            }
+        }
+    }) {
+        Text("Start Progress Dialog")
+    }
+}
 
 @Composable
 fun ItemsGUI(
@@ -44,6 +93,8 @@ fun ItemsGUI(
 //    MaterialTheme {
     println("ItemsGUI")
     var updateDb = remember { mutableStateOf(true) }
+    var addedItemsCount = remember { mutableStateOf(0) }
+    var itemsTotal = remember { mutableStateOf(0) }
 //    var objList = dbWork.getAllObjectsForCollection("Items") as List<Item>
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -71,10 +122,12 @@ fun ItemsGUI(
                         println("file = ${file.name}")
                         val excelWork = ExcelWork(file.path)
                         val itemsList = excelWork.readCellsFromExcel(1, 2)
+                        itemsTotal.value = itemsList.size
 //                        println("itemsList: ")
 //                        itemsList.forEach { println(it) }
-                        //todo сделать прогрессбар для импорта из Excel-файла, передавать в него из dbWork прогресс добавленных объектов
-                        dbWork.addAllItemsFromListToCollection(itemsList, "Items")
+                        dbWork.addAllItemsFromListToCollection(itemsList, "Items"){
+                            addedItemsCount.value = it
+                        }
                         updateDb.value = true
 //                        excelWork.extractImagesFromExcel()
                     }
@@ -86,6 +139,8 @@ fun ItemsGUI(
             ) {
                 Text(text = "Загрузить БД")
             }
+            //todo переделать прогрессбар для импорта из Excel-файла, передавать в него из dbWork прогресс добавленных объектов
+            ProgressAlertDialogExample( itemsTotal,addedItemsCount)
         }
         var isChecked = remember { mutableStateOf(false) }
         var btnActive = remember { mutableStateOf(false) }

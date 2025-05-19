@@ -1,10 +1,8 @@
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.couchbase.lite.*
-import com.couchbase.lite.QueryBuilder.select
 import com.google.gson.Gson
 //import com.couchbase.client.kotlin.query.dsl.Select.select
-import kotlinx.coroutines.flow.Flow
 
 @Immutable
 class DBwork {
@@ -124,13 +122,16 @@ class DBwork {
         return false
     }
 
-    fun addAllItemsFromListToCollection(itemsList: ArrayList<Item?>, collection: String) {
+    fun addAllItemsFromListToCollection(itemsList: ArrayList<Item?>, collection: String, onAddItem: (i: Int) -> Unit) {
+        var i = 0
         itemsList.forEach {
             if (!isItemInCollection(it?.name, collection)){
 //                println("${it?.name} is adding to db")
                 val id = getLastIdPlusOne(collection)
                 it?.id = id!!
                 addObjectToCollection(it?.id!!, it, collection)
+                i++
+                onAddItem(i)
             } else  println("${it?.name} is already in db")
         }
     }
