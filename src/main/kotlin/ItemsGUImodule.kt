@@ -37,12 +37,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun ProgressAlertDialogExample(itemsTotal: MutableState<Int>, addedItemsCount: MutableState<Int>) {
-    var showDialog by remember { mutableStateOf(false) }
+fun ProgressAlertDialogExample(showDialog: MutableState<Boolean>, progress: MutableState<Float>, itemsTotal: MutableState<Int>, addedItemsCount: MutableState<Int>) {
     var progress by remember { mutableStateOf(0f) }
-    val scope = rememberCoroutineScope()
-
-    if (showDialog) {
+//    val scope = rememberCoroutineScope()
+  //  var showDialog = remember { mutableStateOf(false) }
+    if (showDialog.value) {
         AlertDialog(
             onDismissRequest = { /* Prevent dismiss or handle as needed */ },
             title = { Text("Loading...") },
@@ -60,8 +59,8 @@ fun ProgressAlertDialogExample(itemsTotal: MutableState<Int>, addedItemsCount: M
             },
             confirmButton = {
                 TextButton(
-                    onClick = { showDialog = false },
-                    enabled = progress >= 1f
+                    onClick = { showDialog.value = false },
+              //      enabled = progress >= 1f
                 ) {
                     Text("Done")
                 }
@@ -69,18 +68,22 @@ fun ProgressAlertDialogExample(itemsTotal: MutableState<Int>, addedItemsCount: M
         )
     }
 
-    Button(onClick = {
-        showDialog = true
-        progress = 0f
-        scope.launch {
-            while (progress < 1f) {
-                delay(100)
-                progress += 0.05f
-            }
-        }
-    }) {
-        Text("Start Progress Dialog")
-    }
+//    progress = 0f
+//    if (showDialog.value)
+//        scope.launch {
+////            while (progress < 1f) {
+//            while (showDialog.value) {
+//                delay(1000)
+//                println("itemsTotal = $itemsTotal")
+//              //  progress += 0.05f
+//            }
+//        }
+//    Button(onClick = {
+//        showDialog = true
+//
+//    }) {
+//        Text("Start Progress Dialog")
+//    }
 }
 
 @Composable
@@ -95,6 +98,9 @@ fun ItemsGUI(
     var updateDb = remember { mutableStateOf(true) }
     var addedItemsCount = remember { mutableStateOf(0) }
     var itemsTotal = remember { mutableStateOf(0) }
+    var showDialog = remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    var progress = remember { mutableStateOf(0f) }
 //    var objList = dbWork.getAllObjectsForCollection("Items") as List<Item>
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -123,6 +129,17 @@ fun ItemsGUI(
                         val excelWork = ExcelWork(file.path)
                         val itemsList = excelWork.readCellsFromExcel(1, 2)
                         itemsTotal.value = itemsList.size
+                        showDialog.value = true
+                        if (showDialog.value)
+                          //  progress.value = 0f
+                            scope.launch {
+                            while (progress.value < 1f) {
+//                                while (showDialog.value) {
+                                    delay(100)
+                                    println("itemsTotal = $itemsTotal")
+                                      progress.value += 0.05f
+                                }
+                            }
 //                        println("itemsList: ")
 //                        itemsList.forEach { println(it) }
                         dbWork.addAllItemsFromListToCollection(itemsList, "Items"){
@@ -140,7 +157,7 @@ fun ItemsGUI(
                 Text(text = "Загрузить БД")
             }
             //todo переделать прогрессбар для импорта из Excel-файла, передавать в него из dbWork прогресс добавленных объектов
-            ProgressAlertDialogExample( itemsTotal,addedItemsCount)
+            ProgressAlertDialogExample(showDialog, progress, itemsTotal, addedItemsCount)
         }
         var isChecked = remember { mutableStateOf(false) }
         var btnActive = remember { mutableStateOf(false) }
