@@ -37,8 +37,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun ProgressAlertDialogExample(showDialog: MutableState<Boolean>, progress: MutableState<Float>, itemsTotal: MutableState<Int>, addedItemsCount: MutableState<Int>) {
-    var progress by remember { mutableStateOf(0f) }
+fun ProgressAlertDialogExample(showDialog: MutableState<Boolean>, progress: Float, itemsTotal: MutableState<Int>, addedItemsCount: Int) {
+    //var progress by remember { mutableStateOf(0f) }
 //    val scope = rememberCoroutineScope()
   //  var showDialog = remember { mutableStateOf(false) }
     if (showDialog.value) {
@@ -67,23 +67,6 @@ fun ProgressAlertDialogExample(showDialog: MutableState<Boolean>, progress: Muta
             }
         )
     }
-
-//    progress = 0f
-//    if (showDialog.value)
-//        scope.launch {
-////            while (progress < 1f) {
-//            while (showDialog.value) {
-//                delay(1000)
-//                println("itemsTotal = $itemsTotal")
-//              //  progress += 0.05f
-//            }
-//        }
-//    Button(onClick = {
-//        showDialog = true
-//
-//    }) {
-//        Text("Start Progress Dialog")
-//    }
 }
 
 @Composable
@@ -96,11 +79,12 @@ fun ItemsGUI(
 //    MaterialTheme {
     println("ItemsGUI")
     var updateDb = remember { mutableStateOf(true) }
-    var addedItemsCount = remember { mutableStateOf(0) }
+    var addedItemsCount by remember { mutableStateOf(0) }
     var itemsTotal = remember { mutableStateOf(0) }
     var showDialog = remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    var progress = remember { mutableStateOf(0f) }
+    var progress by remember { mutableStateOf(0f) }
+//    var itemsList: ArrayList<Item?> = ArrayList<Item?>()
 //    var objList = dbWork.getAllObjectsForCollection("Items") as List<Item>
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -110,6 +94,8 @@ fun ItemsGUI(
                 .wrapContentHeight()
                 .border(2.dp, Color.Blue)
         ) {
+            var itemsList = remember { mutableStateListOf<Item?>() }
+//            var itemsList2 = remember { mutableStateListOf<Int>() }
             Button(
                 onClick = {
                     println("load")
@@ -123,29 +109,28 @@ fun ItemsGUI(
                     println("fileDialog.directory = ${fileDialog.directory}")
                     if (fileDialog.file != null) {
                         val file = File(fileDialog.directory, fileDialog.file)
-//                val bytes = file.readBytes()
-//                onFileSelected(bytes, file.name)
                         println("file = ${file.name}")
                         val excelWork = ExcelWork(file.path)
-                        val itemsList = excelWork.readCellsFromExcel(1, 2)
+                        itemsList.addAll( excelWork.readCellsFromExcel(1, 2))
+//                        itemsList2.addAll(arrayListOf(1, 2, 3))
+
                         itemsTotal.value = itemsList.size
+                        println("itemsList size in button click = ${itemsList.size}")
+//                        println("itemsList2 size in button click = ${itemsList2.size}")
+//                        dbWork.addAllItemsFromListToCollection(itemsList, "Items"){
+//                            addedItemsCount = it
+//                            println("addedItemsCount = $addedItemsCount")
+//                        }
+//                        println("all added to db")
                         showDialog.value = true
-                        if (showDialog.value)
-                          //  progress.value = 0f
-                            scope.launch {
-                            while (progress.value < 1f) {
-//                                while (showDialog.value) {
-                                    delay(100)
-                                    println("itemsTotal = $itemsTotal")
-                                      progress.value += 0.05f
-                                }
-                            }
+
 //                        println("itemsList: ")
 //                        itemsList.forEach { println(it) }
-                        dbWork.addAllItemsFromListToCollection(itemsList, "Items"){
-                            addedItemsCount.value = it
-                        }
-                        updateDb.value = true
+//                        dbWork.addAllItemsFromListToCollection(itemsList, "Items"){
+//                            addedItemsCount = it
+//                            println("addedItemsCount = $addedItemsCount")
+//                        }
+//                        updateDb.value = true
 //                        excelWork.extractImagesFromExcel()
                     }
                 },
@@ -157,6 +142,39 @@ fun ItemsGUI(
                 Text(text = "Загрузить БД")
             }
             //todo переделать прогрессбар для импорта из Excel-файла, передавать в него из dbWork прогресс добавленных объектов
+            if (showDialog.value) {
+//                println("itemsList size in coroutine = ${itemsList.size}")
+//                println("itemsList2 size in coroutine = ${itemsList2.size}")
+//                dbWork.addAllItemsFromListToCollection(itemsList, "Items"){
+//                    addedItemsCount = it
+//                    println("addedItemsCount = $addedItemsCount")
+//                }
+//                println("all added to db")
+//                updateDb.value = true
+//                //  progress.value = 0f
+////                            scope.launch {
+
+                println("---!!!  LaunchedEffect1 started !!!!----")
+                LaunchedEffect(Unit) {
+                    dbWork.addAllItemsFromListToCollection(itemsList, "Items") {
+                        addedItemsCount = it
+
+//                        scope.launch { delay(500)}
+                        println("addedItemsCount = $addedItemsCount")
+                    }
+                    println("LaunchedEffect1 passed")
+                    updateDb.value = true
+                }
+                println("---!!!  LaunchedEffect2 started !!!!----")
+                LaunchedEffect(Unit) {
+                    while (addedItemsCount < itemsTotal.value) {
+//                                while (showDialog.value) {
+                        delay(500)
+                        println("itemsTotal = ${itemsTotal.value}, progress = ${progress} addedItemsCount in progress = ${addedItemsCount}")
+                        progress += 0.05f
+                    }
+                }
+            }
             ProgressAlertDialogExample(showDialog, progress, itemsTotal, addedItemsCount)
         }
         var isChecked = remember { mutableStateOf(false) }

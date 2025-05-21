@@ -1,3 +1,4 @@
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.DateUtil
@@ -84,8 +85,8 @@ class ExcelWork(private val filePath: String) {
     }
 
 
-    fun readCellsFromExcel(sheetIndex: Int = 0, firstRow: Int = 2): ArrayList<Item?> {
-        val itemsList = ArrayList<Item?>()
+    fun readCellsFromExcel(sheetIndex: Int = 0, firstRow: Int = 2): SnapshotStateList<Item?> {
+        val itemsList = SnapshotStateList<Item?>()
         var rowsNum = 0
         FileInputStream(filePath).use { fis ->
             WorkbookFactory.create(fis).use { workbook ->

@@ -2,6 +2,8 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.couchbase.lite.*
 import com.google.gson.Gson
+import kotlinx.coroutines.delay
+
 //import com.couchbase.client.kotlin.query.dsl.Select.select
 
 @Immutable
@@ -122,7 +124,7 @@ class DBwork {
         return false
     }
 
-    fun addAllItemsFromListToCollection(itemsList: ArrayList<Item?>, collection: String, onAddItem: (i: Int) -> Unit) {
+    suspend fun addAllItemsFromListToCollection(itemsList: SnapshotStateList<Item?>, collection: String, onAddItem: (Int) -> Unit) {
         var i = 0
         itemsList.forEach {
             if (!isItemInCollection(it?.name, collection)){
@@ -131,6 +133,7 @@ class DBwork {
                 it?.id = id!!
                 addObjectToCollection(it?.id!!, it, collection)
                 i++
+                delay(500)
                 onAddItem(i)
             } else  println("${it?.name} is already in db")
         }
