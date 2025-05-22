@@ -31,7 +31,8 @@ dependencies {
 //    implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(kotlin("reflect"))
     implementation("org.apache.poi:poi:5.2.0")
-    implementation("org.apache.poi:poi-ooxml:5.2.0")
+//    implementation("org.apache.poi:poi-ooxml:5.2.0")
+    implementation("org.apache.poi:poi-ooxml:5.4.0")
 //    implementation ("androidx.compose.material3:material3:1.2.0")
 }
 

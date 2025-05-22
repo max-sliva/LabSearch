@@ -1,4 +1,6 @@
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.yield
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.DateUtil
@@ -11,8 +13,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.apache.poi.xssf.usermodel.XSSFPicture
 import java.io.File
 import java.io.IOException
-class ExcelWork(private val filePath: String) {
+class ExcelWork(private var filePath: String) {
     private fun setItemField(cellIndexInRow: Int, itemInRow: Item, stringCellValue: String): Item {
+//        println("stringCellValue = $stringCellValue")
         when (cellIndexInRow){ //1 - name, 2 - info, 3 - кол-во, 4 - img, 6 - place
             1 -> {itemInRow.name = stringCellValue}
             2 -> {itemInRow.info = stringCellValue}
@@ -21,6 +24,10 @@ class ExcelWork(private val filePath: String) {
             6 -> {itemInRow.place = Place(name = StorageName.valueOf(stringCellValue))}
         }
         return itemInRow
+    }
+
+    fun setPath(path: String){
+        filePath = path
     }
 
     fun readXlsxRow(sheetIndex: Int = 0, rowIndex: Int): Item? {
@@ -85,20 +92,30 @@ class ExcelWork(private val filePath: String) {
     }
 
 
-    fun readCellsFromExcel(sheetIndex: Int = 0, firstRow: Int = 2): SnapshotStateList<Item?> {
+    suspend fun readCellsFromExcel(sheetIndex: Int = 0, firstRow: Int = 2, onAddItem: (Int) -> Unit): SnapshotStateList<Item?> {
         val itemsList = SnapshotStateList<Item?>()
         var rowsNum = 0
-        FileInputStream(filePath).use { fis ->
-            WorkbookFactory.create(fis).use { workbook ->
-                val sheet = workbook.getSheetAt(sheetIndex) // Get the sheet (e.g., first sheet)
-                rowsNum = sheet.lastRowNum
-            }
-        }
+        rowsNum = getRowsCount(sheetIndex, rowsNum)
         println("rowsNum = $rowsNum")
         for (i in firstRow..rowsNum){
             itemsList.add(readXlsxRow(sheetIndex, i))
+            delay(1)
+//            yield()
+            onAddItem(i-1)
         }
         return itemsList
+    }
+
+    fun getRowsCount(sheetIndex: Int, rowsNum: Int): Int {
+        var rowsNum1 = rowsNum
+//        println("filePath = $filePath")
+        FileInputStream(filePath).use { fis ->
+            WorkbookFactory.create(fis).use { workbook ->
+                val sheet = workbook.getSheetAt(sheetIndex) // Get the sheet (e.g., first sheet)
+                rowsNum1 = sheet.lastRowNum
+            }
+        }
+        return rowsNum1
     }
 
     fun getDrawingsFromExcelSheet(sheetIndex: Int = 0): XSSFDrawing? {

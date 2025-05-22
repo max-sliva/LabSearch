@@ -3,6 +3,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.couchbase.lite.*
 import com.google.gson.Gson
 import kotlinx.coroutines.delay
+import kotlin.system.measureTimeMillis
 
 //import com.couchbase.client.kotlin.query.dsl.Select.select
 
@@ -124,19 +125,23 @@ class DBwork {
         return false
     }
 
-    suspend fun addAllItemsFromListToCollection(itemsList: SnapshotStateList<Item?>, collection: String, onAddItem: (Int) -> Unit) {
+    suspend fun addAllItemsFromListToCollection(itemsList: SnapshotStateList<Item?>, collection: String,/* onAddItem: (Int) -> Unit*/) {
         var i = 0
-        itemsList.forEach {
-            if (!isItemInCollection(it?.name, collection)){
+        val duration = measureTimeMillis {
+            itemsList.forEach {
+                if (!isItemInCollection(it?.name, collection)) {
 //                println("${it?.name} is adding to db")
-                val id = getLastIdPlusOne(collection)
-                it?.id = id!!
-                addObjectToCollection(it?.id!!, it, collection)
-                i++
-                delay(500)
-                onAddItem(i)
-            } else  println("${it?.name} is already in db")
+                    val id = getLastIdPlusOne(collection)
+                    it?.id = id!!
+                    addObjectToCollection(it?.id!!, it, collection)
+                    i++
+//                delay(500)
+//                    onAddItem(i)
+                } else println("${it?.name} is already in db")
+            }
         }
+        println("--!! dblWork time = $duration ms !!--")
+
     }
 
     fun addObjectToCollection(id: String, obj: Thing, collection: String) {
@@ -148,7 +153,7 @@ class DBwork {
         val mutableDoc = MutableDocument(obj.id).setJSON(json)
 //        println("mutableDoc = $mutableDoc")
         collectionInDB?.save(mutableDoc)
-        println("added obj with id = ${obj.id}")
+//        println("added obj with id = ${obj.id}")
 //        getAllCollectionsFromDB()
     }
 
@@ -230,7 +235,7 @@ class DBwork {
         val collection = db.getCollection(collection)
         val sourceDoc = collection!!.getDocument(id)
         collection.delete(sourceDoc!!)
-        getAllCollectionsFromDB()
+//        getAllCollectionsFromDB()
 
     }
 }

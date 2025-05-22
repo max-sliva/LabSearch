@@ -116,7 +116,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
                     ),
                     placeholder = { Text(text = "Введите текст для поиска") }
                 )
-                Button(onClick = { //todo выяснить, почему вылетает с ошибкой Index 0 out of bounds при втором поиске (иногда)
+                Button(onClick = { //todo выяснить, почему вылетает с ошибкой Index 0 out of bounds при втором поиске (иногда) или не показывает список подходящих под строкой поиска
                     imageSrc = searchItem(itemsFromDB, searchValue, storageNameToPngMap)
                     namesList.clear()
                     storageNameToPngMap.forEach { k, v ->
@@ -210,7 +210,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
                 Text(text = "rotate")
             }
 //            var  itemImageFile = loadImageFrom("Images/${itemImage?.value}.png")
-            var  itemImageFile = loadImageFrom(itemImage!!.value)
+            var  itemImageFile = loadImageFrom(itemImage?.value ?: "Images/default.png")
             if (itemImage==null || itemImage.value == "")
              itemImageFile = loadImageFrom("Images/default.png")
 
@@ -280,9 +280,9 @@ private fun getStorageName(x: Double, y: Double, imageRotate: MutableState<Float
     }
 
 fun loadImageFrom(filePath: String): ImageBitmap { //ф-ия для получения изображения из файла
-    println("filePath in loadImageFrom = $filePath")
+//    println("filePath in loadImageFrom = $filePath")
     var bytes: ByteArray
-    if (!filePath.isEmpty() && !filePath.contains("default")) {
+    if (!filePath.isEmpty() && !filePath.contains("default") && !filePath.contains("null")) {
         bytes = Files.readAllBytes(Path.of(filePath)) // path relative to project root
     } else bytes = Files.readAllBytes(Path.of("Images/default.png"))
     return Image.makeFromEncoded(bytes).toComposeImageBitmap()

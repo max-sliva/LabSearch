@@ -34,10 +34,13 @@ import java.nio.file.Paths
 import kotlin.enums.EnumEntries
 import androidx.compose.ui.text.style.TextAlign
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
+import kotlin.system.measureTimeMillis
 
 @Composable
-fun ProgressAlertDialogExample(showDialog: MutableState<Boolean>, progress: Float, itemsTotal: MutableState<Int>, addedItemsCount: Int) {
+fun ProgressAlertDialogExample(showDialog: MutableState<Boolean>, progress: Float, itemsTotal: Int, addedItemsCount: Int) {
     //var progress by remember { mutableStateOf(0f) }
 //    val scope = rememberCoroutineScope()
   //  var showDialog = remember { mutableStateOf(false) }
@@ -55,6 +58,7 @@ fun ProgressAlertDialogExample(showDialog: MutableState<Boolean>, progress: Floa
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(text = "Progress: ${(progress * 100).toInt()}%")
+                    Text(text = "Добавлено $addedItemsCount из ${itemsTotal}")
                 }
             },
             confirmButton = {
@@ -80,10 +84,11 @@ fun ItemsGUI(
     println("ItemsGUI")
     var updateDb = remember { mutableStateOf(true) }
     var addedItemsCount by remember { mutableStateOf(0) }
-    var itemsTotal = remember { mutableStateOf(0) }
+    var itemsTotal by remember { mutableStateOf(0) }
     var showDialog = remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     var progress by remember { mutableStateOf(0f) }
+    var excelWork by remember { mutableStateOf(ExcelWork(""))}
 //    var itemsList: ArrayList<Item?> = ArrayList<Item?>()
 //    var objList = dbWork.getAllObjectsForCollection("Items") as List<Item>
     Column(
@@ -98,6 +103,7 @@ fun ItemsGUI(
 //            var itemsList2 = remember { mutableStateListOf<Int>() }
             Button(
                 onClick = {
+                    addedItemsCount = 0
                     println("load")
                     val currentDir = File(System.getProperty("user.dir"))
                     val currentDir2 = Paths.get("").toAbsolutePath().toString()
@@ -110,28 +116,10 @@ fun ItemsGUI(
                     if (fileDialog.file != null) {
                         val file = File(fileDialog.directory, fileDialog.file)
                         println("file = ${file.name}")
-                        val excelWork = ExcelWork(file.path)
-                        itemsList.addAll( excelWork.readCellsFromExcel(1, 2))
-//                        itemsList2.addAll(arrayListOf(1, 2, 3))
-
-                        itemsTotal.value = itemsList.size
-                        println("itemsList size in button click = ${itemsList.size}")
-//                        println("itemsList2 size in button click = ${itemsList2.size}")
-//                        dbWork.addAllItemsFromListToCollection(itemsList, "Items"){
-//                            addedItemsCount = it
-//                            println("addedItemsCount = $addedItemsCount")
-//                        }
-//                        println("all added to db")
+                        excelWork.setPath(file.path)
+                        itemsTotal = excelWork.getRowsCount(1, 2) - 1
+                        println("itemsTotal.value in button click = ${itemsTotal}")
                         showDialog.value = true
-
-//                        println("itemsList: ")
-//                        itemsList.forEach { println(it) }
-//                        dbWork.addAllItemsFromListToCollection(itemsList, "Items"){
-//                            addedItemsCount = it
-//                            println("addedItemsCount = $addedItemsCount")
-//                        }
-//                        updateDb.value = true
-//                        excelWork.extractImagesFromExcel()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -141,37 +129,29 @@ fun ItemsGUI(
             ) {
                 Text(text = "Загрузить БД")
             }
-            //todo переделать прогрессбар для импорта из Excel-файла, передавать в него из dbWork прогресс добавленных объектов
             if (showDialog.value) {
-//                println("itemsList size in coroutine = ${itemsList.size}")
-//                println("itemsList2 size in coroutine = ${itemsList2.size}")
-//                dbWork.addAllItemsFromListToCollection(itemsList, "Items"){
-//                    addedItemsCount = it
-//                    println("addedItemsCount = $addedItemsCount")
-//                }
-//                println("all added to db")
-//                updateDb.value = true
-//                //  progress.value = 0f
-////                            scope.launch {
-
-                println("---!!!  LaunchedEffect1 started !!!!----")
                 LaunchedEffect(Unit) {
-                    dbWork.addAllItemsFromListToCollection(itemsList, "Items") {
-                        addedItemsCount = it
-
-//                        scope.launch { delay(500)}
-                        println("addedItemsCount = $addedItemsCount")
+                    println("---!!!  LaunchedEffect1 started !!!!----")
+                    val duration = measureTimeMillis {
+                        itemsList.addAll(excelWork.readCellsFromExcel(1, 2) {
+                                                        addedItemsCount = it
+                                                        println("addedItemsCount = $addedItemsCount")
+                                                    }
+                        )
                     }
+                    println("--!! excelWork time = $duration ms !!--")
+                    dbWork.addAllItemsFromListToCollection(itemsList, "Items")
                     println("LaunchedEffect1 passed")
                     updateDb.value = true
                 }
-                println("---!!!  LaunchedEffect2 started !!!!----")
                 LaunchedEffect(Unit) {
-                    while (addedItemsCount < itemsTotal.value) {
+                    println("---!!!  LaunchedEffect2 started !!!!----")
+                    println("itemsTotal.value in LaunchedEffect2 = ${itemsTotal}")
+                    while (addedItemsCount < itemsTotal) {
 //                                while (showDialog.value) {
-                        delay(500)
-                        println("itemsTotal = ${itemsTotal.value}, progress = ${progress} addedItemsCount in progress = ${addedItemsCount}")
-                        progress += 0.05f
+                        delay(1)
+                        println("itemsTotal = ${itemsTotal}, progress = ${progress} addedItemsCount in progress = ${addedItemsCount}")
+                        progress = addedItemsCount.toFloat() / (itemsTotal)
                     }
                 }
             }
