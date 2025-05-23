@@ -116,6 +116,7 @@ fun ItemsGUI(
                     if (fileDialog.file != null) {
                         val file = File(fileDialog.directory, fileDialog.file)
                         println("file = ${file.name}")
+                        //todo попробовать fastexcel-reader https://github.com/dhatim/fastexcel
                         excelWork.setPath(file.path)
                         itemsTotal = excelWork.getRowsCount(1, 2) - 1
                         println("itemsTotal.value in button click = ${itemsTotal}")

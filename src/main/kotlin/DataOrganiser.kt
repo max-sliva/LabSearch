@@ -130,7 +130,7 @@ fun main() = application {
     val dbWork = DBwork()
     val maxId =  dbWork.findMaxNumericId("Items")
     println("maxId = $maxId")
-    dbWork.clearCollection("Items")
+//    dbWork.clearCollection("Items")
 //    dbWork.getAllCollectionsFromDB()
     println("-----------------------------------------------------------")
 //    dbWork.deleteObjectFromCollectiobById("1", "Items")
