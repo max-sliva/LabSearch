@@ -34,6 +34,8 @@ dependencies {
 //    implementation("org.apache.poi:poi-ooxml:5.2.0")
     implementation("org.apache.poi:poi-ooxml:5.4.0")
 //    implementation ("androidx.compose.material3:material3:1.2.0")
+    // https://mvnrepository.com/artifact/org.dhatim/fastexcel-reader
+    implementation("org.dhatim:fastexcel-reader:0.19.0")
 }
 
 //to make exe run in terminal:

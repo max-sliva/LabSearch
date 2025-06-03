@@ -34,9 +34,6 @@ import java.nio.file.Paths
 import kotlin.enums.EnumEntries
 import androidx.compose.ui.text.style.TextAlign
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.yield
 import kotlin.system.measureTimeMillis
 
 @Composable
@@ -91,6 +88,13 @@ fun ItemsGUI(
     var excelWork by remember { mutableStateOf(ExcelWork(""))}
 //    var itemsList: ArrayList<Item?> = ArrayList<Item?>()
 //    var objList = dbWork.getAllObjectsForCollection("Items") as List<Item>
+    val currentDir = File(System.getProperty("user.dir"))
+    val currentDir2 = Paths.get("").toAbsolutePath().toString()
+    val fileDialog = FileDialog(null as ComposeWindow?, "Select File", FileDialog.LOAD)
+    println("curDir = ${currentDir.absolutePath} \ncurDir2 = $currentDir2")
+//            fileDialog.directory = currentDir.absolutePath
+    fileDialog.directory = currentDir2
+
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -105,18 +109,17 @@ fun ItemsGUI(
                 onClick = {
                     addedItemsCount = 0
                     println("load")
-                    val currentDir = File(System.getProperty("user.dir"))
-                    val currentDir2 = Paths.get("").toAbsolutePath().toString()
-                    val fileDialog = FileDialog(null as ComposeWindow?, "Select File", FileDialog.LOAD)
-                    println("curDir = ${currentDir.absolutePath} \ncurDir2 = $currentDir2")
-//            fileDialog.directory = currentDir.absolutePath
-                    fileDialog.directory = currentDir2
+//                    val currentDir = File(System.getProperty("user.dir"))
+//                    val currentDir2 = Paths.get("").toAbsolutePath().toString()
+//                    val fileDialog = FileDialog(null as ComposeWindow?, "Select File", FileDialog.LOAD)
+//                    println("curDir = ${currentDir.absolutePath} \ncurDir2 = $currentDir2")
+////            fileDialog.directory = currentDir.absolutePath
+//                    fileDialog.directory = currentDir2
                     fileDialog.isVisible = true
                     println("fileDialog.directory = ${fileDialog.directory}")
                     if (fileDialog.file != null) {
                         val file = File(fileDialog.directory, fileDialog.file)
                         println("file = ${file.name}")
-                        //todo попробовать fastexcel-reader https://github.com/dhatim/fastexcel
                         excelWork.setPath(file.path)
                         itemsTotal = excelWork.getRowsCount(1, 2) - 1
                         println("itemsTotal.value in button click = ${itemsTotal}")
@@ -128,8 +131,30 @@ fun ItemsGUI(
                     contentColor = Color.White    // Custom text color
                 ),
             ) {
-                Text(text = "Загрузить БД")
+                Text(text = "Загрузить БД (Apache POI)")
             }
+//            Button(
+//                onClick = {
+//                    //попробовать fastexcel-reader https://github.com/dhatim/fastexcel
+//                    println("FastExcel work")
+//                    fileDialog.isVisible = true
+//                    println("fileDialog.directory = ${fileDialog.directory}")
+//                    if (fileDialog.file != null) {
+//                        val file = File(fileDialog.directory, fileDialog.file)
+//                        println("file = ${file.name}")
+//                        val fastExcelWork = FastExcelWork(file.path)
+//                        val rows = fastExcelWork.getRowsCount(1, 2)
+//                        println("rows number with FastExcel = $rows")
+//                        fastExcelWork.readCellsFromExcel(1,2){
+//
+//                        }
+//                    }
+//                },
+//                modifier = Modifier
+//
+//            ){
+//                Text(text = "FastExcel")
+//            }
             if (showDialog.value) {
                 LaunchedEffect(Unit) {
                     println("---!!!  LaunchedEffect1 started !!!!----")
@@ -438,7 +463,8 @@ fun TableForItems(
         if (!mapForFieldNames.keys.contains(it)) mapForFieldNames[it] = true
     }
     var mDisplayMenu = remember { mutableStateOf(false) }
-    MakeTableCaption(mDisplayMenu, mapForFieldNames, fieldNames)
+    var sortColumn = remember{mutableStateOf("id")}
+    MakeTableCaption(mDisplayMenu, mapForFieldNames, fieldNames, sortColumn)
 
     var clickedItemId = remember { mutableStateOf("") }
     val mapColnamesToNumber = mapOf(0 to "id", 1 to "name", 2 to "place", 3 to "info")
@@ -453,6 +479,7 @@ fun TableForItems(
         delId,
         showDialog,
         curPlace,
+        sortColumn,
         onPlaceSelect
     )
 }
@@ -461,7 +488,8 @@ fun TableForItems(
 private fun MakeTableCaption(
     mDisplayMenu: MutableState<Boolean>,
     mapForFieldNames: SnapshotStateMap<String, Boolean>,
-    fieldNames: List<String>?
+    fieldNames: List<String>?,
+    sortColumn: MutableState<String>
 ) {
 //    var mDisplayMenu1 = mDisplayMenu
     Row( //строка с названиями полей
@@ -474,7 +502,7 @@ private fun MakeTableCaption(
                     while (true) {
                         val event = awaitPointerEvent()
                         val button = event.buttons
-                        if (button.isSecondaryPressed || button.isPrimaryPressed) {
+                        if (button.isSecondaryPressed) {
                             println("context menu for captions is called")
                             mDisplayMenu.value = true
                             println("mapForFieldNames = $mapForFieldNames")
@@ -494,6 +522,21 @@ private fun MakeTableCaption(
                         .border(2.dp, Color.Black)
                         .wrapContentWidth()
                         .weight(5f)
+//                        .clickable{
+//                            println("Column in clickable = $it")
+//                        }
+                        .pointerInput(Unit) {
+                            awaitPointerEventScope {
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    val button = event.buttons
+                                    if (button.isPrimaryPressed) {
+                                        sortColumn.value = it
+                                        println("Column = ${sortColumn.value}")
+                                    }
+                                }
+                            }
+                        }
                 )
             DropdownMenu(
                 expanded = mDisplayMenu.value,
@@ -541,8 +584,27 @@ private fun MakeTableContent( //содержимое таблицы на осн�
     delId: MutableState<String>,
     showDialog: MutableState<Boolean>,
     curPlace: MutableState<StorageName>,
+    sortColumn: MutableState<String>,
     onPlaceSelect: (StorageName, String) -> Unit
 ) {
+    when (sortColumn.value){
+        "id"->{
+            println("sort by id")
+            objList.sortBy { it.id.toInt() }
+        }
+        "name"->{
+            println("sort by name")
+            objList.sortBy { it.name }
+        }
+        "place"->{
+            println("sort by place")
+            objList.sortBy { it.place.name }
+        }
+        "info"->{
+            println("sort by info")
+            objList.sortBy { it.info }
+        }
+    }
     var clickedItemId1 = clickedItemId
     if (mapForFieldNames.isNotEmpty()) {
         LazyVerticalGrid(
