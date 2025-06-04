@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
+import java.util.Locale
 
 @Composable
 fun OrganiserGUI(dbWork: DBwork) {
@@ -36,8 +37,9 @@ fun OrganiserGUI(dbWork: DBwork) {
                     ) else dbWork.getAllObjectsForCollection("Items")
                     objList.clear()
                     if (selItem.isNotEmpty()) {
-                        println("---!!! item is found !!----")
-                        itemsInPlace = itemsInPlace.filter { (it as Item).name.contains(selItem) }
+                        println("---!!! item is found selItem = $selItem !!----")
+//                        itemsInPlace = itemsInPlace.filter { (it as Item).name.contains(selItem) }
+                        itemsInPlace = itemsInPlace.filter { (it as Item).name.lowercase(Locale.getDefault()).contains(selItem.lowercase()) }
                     } else {
                         println("---!!! place is found !!----")
                     }

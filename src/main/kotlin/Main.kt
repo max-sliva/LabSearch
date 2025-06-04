@@ -25,6 +25,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import okhttp3.internal.platform.Platform
 import org.jetbrains.skia.Image
 import java.nio.file.Files
 import java.nio.file.Path
@@ -63,7 +64,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
     things?.forEach { println(" $it") }
     val arrayOfNames = dataHolder.getItemNamesFromDB() //получаем из БД
     val itemsFromDB = dataHolder.itemsFromDB
-    var namesList = arrayOfNames.toMutableList()
+    var namesList = arrayOfNames.toMutableList() //список подходящих объектов
     namesList.clear()
     val textStyle = TextStyle(fontSize = 20.sp)
     var isLazyRowVisible by remember { mutableStateOf(false) }
@@ -106,7 +107,11 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
                                     if (word.lowercase(Locale.getDefault()).startsWith(newText.lowercase())) accept = true
                                     //todo add check for several words
                                 }
-                                if (accept) namesList.add(it)
+                                if (accept) {
+                                    namesList.add(it)
+                                    println("namesList = $namesList searchValue = $searchValue")
+                                    onPlaceOrItemSelect(curPlace!!.value, searchValue)
+                                }
                             }
                         } else isLazyRowVisible = false
                         if (namesList.isNotEmpty()) isLazyRowVisible = true
@@ -122,8 +127,6 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
                     storageNameToPngMap.forEach { k, v ->
                         if(v==imageSrc) place = k
                     }
-                    //todo сделать фильтрацию объектов в таблице согласно списку подходящих
-
                     curPlaceItems = things?.filter {
                         it is Item && it.place.name.toString() == place.toString()
 
@@ -133,6 +136,14 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
                     if (imageSrc == "206.png" && place!=StorageName.CUSTOM_PLACE) openDialog = true
                 }) {
                     Text(text)
+                }
+                Button(onClick = {
+                    searchValue = ""
+                    curPlace?.value = StorageName.CUSTOM_PLACE
+                    namesList.clear()
+                    onPlaceOrItemSelect(curPlace!!.value, searchValue)
+                }){
+                    Text("x")
                 }
             }
             if (isLazyRowVisible) LazyRow() {
@@ -188,7 +199,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
                                 } as MutableList<Thing>
                                 println("in place: $curPlaceItems")
                             }
-
+                            //todo добавить правый щелчок для стенда, чтобы его увеличить для выбора подкатегории хранения (продумать это для Place)
                         }
                         .onGloballyPositioned { layoutCoordinates ->
                             // Get the size of the image in pixels
