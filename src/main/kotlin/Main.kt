@@ -15,6 +15,8 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.input.pointer.isPrimaryPressed
+import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -182,24 +184,63 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
 //                        .wrapContentWidth()
                         .wrapContentSize()
                         .pointerInput(Unit) {
-                            detectTapGestures { offset ->
-                                val coords = offset // backShelf: upper left x=355.0  y=33.0,   lowe right x=408.0  y=121.0
-                                // при размерах картинки 784 x 441
-                                println("image clicked on x=${coords.x}  y=${coords.y}")
-                                val x = coords.x * imageRatio //скалируем координаты относительно коэф-та изменения картинки
-                                val y = coords.y * imageRatio
-                                println("after scaling x=${x}  y=${y}")
+//                            detectTapGestures { offset ->
+//                                val coords = offset // backShelf: upper left x=355.0  y=33.0,   lowe right x=408.0  y=121.0
+//                                // при размерах картинки 784 x 441
+//                                println("image clicked on x=${coords.x}  y=${coords.y}")
+//                                val x = coords.x * imageRatio //скалируем координаты относительно коэф-та изменения картинки
+//                                val y = coords.y * imageRatio
+//                                println("after scaling x=${x}  y=${y}")
+////                                var place: StorageName
+////                                BACK_SHELF, CENTER_TABLES, TABLE_AT_DOOR, CUSTOM_PLACE, ROBOT_STAND, CABLE_STAND
+//                                place = getStorageName(x, y, imageRotate)
+//                                onPlaceOrItemSelect(place, "")
+//                                imageSrc = storageNameToPngMap[place]
+//                                curPlaceItems = things?.filter {
+//                                    it is Item && it.place.name.toString() == place.toString()
+//                                } as MutableList<Thing>
+//                                println("in place: $curPlaceItems")
+//                            }
+                            //todo добавить правый щелчок для стенда, чтобы его увеличить для выбора подкатегории хранения (продумать это для Place)
+                            awaitPointerEventScope {
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    val button = event.buttons
+                                    val position = event.changes.first().position
+                                    if (button.isPrimaryPressed){
+//                                        clickPosition = position
+                                        println("position = $position")
+                                        val coords = position // backShelf: upper left x=355.0  y=33.0,   lowe right x=408.0  y=121.0
+                                        // при размерах картинки 784 x 441
+                                        println("image clicked on x=${coords.x}  y=${coords.y}")
+                                        val x = coords.x * imageRatio //скалируем координаты относительно коэф-та изменения картинки
+                                        val y = coords.y * imageRatio
+                                        println("after scaling x=${x}  y=${y}")
 //                                var place: StorageName
 //                                BACK_SHELF, CENTER_TABLES, TABLE_AT_DOOR, CUSTOM_PLACE, ROBOT_STAND, CABLE_STAND
-                                place = getStorageName(x, y, imageRotate)
-                                onPlaceOrItemSelect(place, "")
-                                imageSrc = storageNameToPngMap[place]
-                                curPlaceItems = things?.filter {
-                                    it is Item && it.place.name.toString() == place.toString()
-                                } as MutableList<Thing>
-                                println("in place: $curPlaceItems")
+                                        place = getStorageName(x, y, imageRotate)
+                                        onPlaceOrItemSelect(place, "")
+                                        imageSrc = storageNameToPngMap[place]
+                                        println("image = ")
+                                        curPlaceItems = things?.filter {
+                                            it is Item && it.place.name.toString() == place.toString()
+                                        } as MutableList<Thing>
+                                        println("in place: $curPlaceItems")
+                                    }
+                                    if (button.isSecondaryPressed) {
+                                        println("context menu for image is called")
+                                        val x = position.x * imageRatio //скалируем координаты относительно коэф-та изменения картинки
+                                        val y = position.y * imageRatio
+                                        place = getStorageName(x, y, imageRotate)
+                                        if (place==StorageName.BACK_SHELF) {
+                                            println("BACK_SHELF")
+                                            imageSrc = "BackShelf_render.png"
+                                        }
+//                                        mDisplayMenu.value = true
+//                                        println("mapForFieldNames = $mapForFieldNames")
+                                    }
+                                }
                             }
-                            //todo добавить правый щелчок для стенда, чтобы его увеличить для выбора подкатегории хранения (продумать это для Place)
                         }
                         .onGloballyPositioned { layoutCoordinates ->
                             // Get the size of the image in pixels
