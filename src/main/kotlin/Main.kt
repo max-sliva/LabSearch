@@ -207,34 +207,42 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
                                     val event = awaitPointerEvent()
                                     val button = event.buttons
                                     val position = event.changes.first().position
+//                                    println("position = $position")
                                     if (button.isPrimaryPressed){
-//                                        clickPosition = position
-                                        println("position = $position")
-                                        val coords = position // backShelf: upper left x=355.0  y=33.0,   lowe right x=408.0  y=121.0
-                                        // при размерах картинки 784 x 441
-                                        println("image clicked on x=${coords.x}  y=${coords.y}")
-                                        val x = coords.x * imageRatio //скалируем координаты относительно коэф-та изменения картинки
-                                        val y = coords.y * imageRatio
-                                        println("after scaling x=${x}  y=${y}")
-//                                var place: StorageName
-//                                BACK_SHELF, CENTER_TABLES, TABLE_AT_DOOR, CUSTOM_PLACE, ROBOT_STAND, CABLE_STAND
-                                        place = getStorageName(x, y, imageRotate)
-                                        onPlaceOrItemSelect(place, "")
-                                        imageSrc = storageNameToPngMap[place]
-                                        println("image = ")
-                                        curPlaceItems = things?.filter {
-                                            it is Item && it.place.name.toString() == place.toString()
-                                        } as MutableList<Thing>
-                                        println("in place: $curPlaceItems")
-                                    }
-                                    if (button.isSecondaryPressed) {
-                                        println("context menu for image is called")
                                         val x = position.x * imageRatio //скалируем координаты относительно коэф-та изменения картинки
                                         val y = position.y * imageRatio
-                                        place = getStorageName(x, y, imageRotate)
-                                        if (place==StorageName.BACK_SHELF) {
-                                            println("BACK_SHELF")
-                                            imageSrc = "BackShelf_render.png"
+//                                        val coords = position // backShelf: upper left x=355.0  y=33.0,   lowe right x=408.0  y=121.0
+                                        // при размерах картинки 784 x 441
+//                                        println("image clicked on x=${position.x}  y=${position.y}")
+                                        println("after scaling x=${x}  y=${y}")
+                                        if (imageSrc!!.contains("206")){
+                                            place = getStorageName(x, y, imageRotate)
+                                            onPlaceOrItemSelect(place, "")
+                                            imageSrc = storageNameToPngMap[place]
+                                            println("image = ")
+                                            curPlaceItems = things?.filter {
+                                                it is Item && it.place.name.toString() == place.toString()
+                                            } as MutableList<Thing>
+                                            println("in place: $curPlaceItems")
+                                        }
+                                    }
+                                    if (button.isSecondaryPressed) {
+                                        println("context menu for $imageSrc is called")
+                                        val x = position.x * imageRatio //скалируем координаты относительно коэф-та изменения картинки
+                                        val y = position.y * imageRatio
+                                        if (imageSrc!!.contains("206")){
+//                                            println("image = ")
+                                            place = getStorageName(x, y, imageRotate)
+                                            if (place == StorageName.BACK_SHELF) {
+                                                println("BACK_SHELF")
+                                                imageSrc = "BackShelf_render.png"
+                                                place = StorageName.IN_BACK_SHELF
+                                                onPlaceOrItemSelect(place, "")
+                                            }
+                                        } else if (imageSrc == "BackShelf_render.png"){
+                                            imageSrc = "206_backShelf.png"
+                                            place = StorageName.BACK_SHELF
+                                            onPlaceOrItemSelect(place, "")
                                         }
 //                                        mDisplayMenu.value = true
 //                                        println("mapForFieldNames = $mapForFieldNames")
@@ -242,7 +250,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
                                 }
                             }
                         }
-                        .onGloballyPositioned { layoutCoordinates ->
+                        .onGloballyPositioned { layoutCoordinates -> //при изменении размера окна
                             // Get the size of the image in pixels
                             val size = layoutCoordinates.size // IntSize (width, height)
                             println("image size = ${size.width} x ${size.height}")
@@ -250,7 +258,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
                         }
                         .rotate(imageRotate.value)
                 )
-            Button(  //todo сделать возможность поворота изображения лаборатории в зависимости от положения устройства с программой
+            Button(  //todo сделать возможность поворота изображения лаборатории в зависимости от расположения в кабинете устройства с программой
                 onClick = {
                     imageRotate.value+=90
                     if (imageRotate.value==360f) imageRotate.value = 0f

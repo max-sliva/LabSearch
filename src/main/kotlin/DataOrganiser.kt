@@ -31,9 +31,9 @@ fun OrganiserGUI(dbWork: DBwork) {
                 LabRenderView(curPlace, itemImage) { place, selItem ->
                     curPlace.value = place
                     selectedItem.value = selItem
-                    var itemsInPlace = if (place != StorageName.CUSTOM_PLACE) dbWork.getAllObjectsForPlace(
+                    var itemsInPlace = if (place != StorageName.CUSTOM_PLACE /*&& place != StorageName.IN_BACK_SHELF*/) dbWork.getAllObjectsForPlace(
                         "Items",
-                        place
+                        if (place==StorageName.IN_BACK_SHELF) StorageName.BACK_SHELF else place
                     ) else dbWork.getAllObjectsForCollection("Items")
                     objList.clear()
                     if (selItem.isNotEmpty()) {
