@@ -211,7 +211,6 @@ fun ItemsGUI(
             curPlace.value = place
             onPlaceSelect(place, imgPath)
         }
-        //todo добавить отображение кол-ва записей вида  10 из 50
     }
 //    }
 }
@@ -468,10 +467,24 @@ fun TableForItems(
     }
     var mDisplayMenu = remember { mutableStateOf(false) }
     var sortColumn = remember{mutableStateOf("id")}
+    val itemsAll = objList.size
+    val listState: LazyGridState = rememberLazyGridState()
+    var visibleItemsCount = listState.layoutInfo.visibleItemsInfo.size
+    Row( modifier = Modifier
+        .fillMaxWidth()
+        .padding(4.dp)
+        .border(2.dp, Color.Black)
+    ){
+        val cols = fieldNames?.count {(mapForFieldNames[it]!!) }
+        val visItems = visibleItemsCount / cols!!
+        //todo сделать увеличение и уменьшение кол-ва просмотренных
+        Text(text = "Просмотрено: $visItems ||  Всего: $itemsAll")
+    }
     MakeTableCaption(mDisplayMenu, mapForFieldNames, fieldNames, sortColumn)
 
     var clickedItemId = remember { mutableStateOf("") }
     val mapColnamesToNumber = mapOf(0 to "id", 1 to "name", 2 to "place", 3 to "info")
+    println("visibleItemsCount = $visibleItemsCount")
     MakeTableContent(
         mapForFieldNames,
         objList,
@@ -484,8 +497,10 @@ fun TableForItems(
         showDialog,
         curPlace,
         sortColumn,
+        listState,
         onPlaceSelect
     )
+
 }
 
 @Composable
@@ -589,6 +604,7 @@ private fun MakeTableContent( //содержимое таблицы на осн�
     showDialog: MutableState<Boolean>,
     curPlace: MutableState<StorageName>,
     sortColumn: MutableState<String>,
+    listState: LazyGridState,
     onPlaceSelect: (StorageName, String) -> Unit
 ) {
     when (sortColumn.value){
@@ -610,9 +626,9 @@ private fun MakeTableContent( //содержимое таблицы на осн�
         }
     }
     var clickedItemId1 = clickedItemId
-    val listState: LazyGridState = rememberLazyGridState()
-//    var itemIsVisible_3 = listState.layoutInfo.visibleItemsInfo.any { it.index == 3 }
-    var visibleItemsCount = listState.layoutInfo.visibleItemsInfo.size
+//    val listState: LazyGridState = rememberLazyGridState()
+////    var itemIsVisible_3 = listState.layoutInfo.visibleItemsInfo.any { it.index == 3 }
+//    var visibleItemsCount = listState.layoutInfo.visibleItemsInfo.size
 //    println("visibleItemsCount = $visibleItemsCount")
 //    if (itemIsVisible_3) {
 //        println("---!!! item 3 is visible !!!---")
@@ -629,6 +645,7 @@ private fun MakeTableContent( //содержимое таблицы на осн�
             modifier = Modifier
                 .border(2.dp, Color.Black)
                 .padding(4.dp)
+//                .wrapContentHeight()
         ) {
             if (objList.isNotEmpty()) {
                 println("TableForItems updated")
