@@ -5,7 +5,10 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -208,6 +211,7 @@ fun ItemsGUI(
             curPlace.value = place
             onPlaceSelect(place, imgPath)
         }
+        //todo добавить отображение кол-ва записей вида  10 из 50
     }
 //    }
 }
@@ -543,7 +547,7 @@ private fun MakeTableCaption(
                 onDismissRequest = { mDisplayMenu.value = false }
             ) {
     //                mapForFieldNames.forEach { (name, checkValue) ->
-                fieldNames?.forEach { name ->
+                fieldNames.forEach { name ->
                     DropdownMenuItem(
                         content = {
                             Checkbox(
@@ -606,18 +610,29 @@ private fun MakeTableContent( //содержимое таблицы на осн�
         }
     }
     var clickedItemId1 = clickedItemId
+    val listState: LazyGridState = rememberLazyGridState()
+//    var itemIsVisible_3 = listState.layoutInfo.visibleItemsInfo.any { it.index == 3 }
+    var visibleItemsCount = listState.layoutInfo.visibleItemsInfo.size
+//    println("visibleItemsCount = $visibleItemsCount")
+//    if (itemIsVisible_3) {
+//        println("---!!! item 3 is visible !!!---")
+//    } else {
+//        println("---!!! item 3 is not visible !!!---")
+//    }
     if (mapForFieldNames.isNotEmpty()) {
         LazyVerticalGrid(
 //        columns = GridCells.Fixed(itemColumns),
             columns = GridCells.Fixed(mapForFieldNames.filterValues { it }.size), //кол-во колонок в зависимости от выбранных в контекстном меню
             verticalArrangement = Arrangement.spacedBy(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
+            state = listState,
             modifier = Modifier
                 .border(2.dp, Color.Black)
                 .padding(4.dp)
         ) {
             if (objList.isNotEmpty()) {
                 println("TableForItems updated")
+//                var itemIsVisible_3 = listState.layoutInfo.visibleItemsInfo.any { it.index == 3 }
                 objList.forEach { obj ->
 //                    val rowWithID = obj.getListOfValuesWithoutImg() //все поля
                     val rowWithID = obj.getListOfValues() //все поля

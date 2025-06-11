@@ -201,7 +201,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
 //                                } as MutableList<Thing>
 //                                println("in place: $curPlaceItems")
 //                            }
-                            //todo добавить правый щелчок для стенда, чтобы его увеличить для выбора подкатегории хранения (продумать это для Place)
+                            //todo добавить правый щелчок для стенда, чтобы для выбора подкатегории хранения (продумать это для Place)
                             awaitPointerEventScope {
                                 while (true) {
                                     val event = awaitPointerEvent()
