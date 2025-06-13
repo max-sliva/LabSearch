@@ -477,7 +477,7 @@ fun TableForItems(
     ){
         val cols = fieldNames?.count {(mapForFieldNames[it]!!) }
         val visItems = visibleItemsCount / cols!!
-        //todo сделать увеличение и уменьшение кол-ва просмотренных
+        //todo сделать увеличение и уменьшение кол-ва просмотренных, можно по просмотренным id ориентироваться
         Text(text = "Просмотрено: $visItems ||  Всего: $itemsAll")
     }
     MakeTableCaption(mDisplayMenu, mapForFieldNames, fieldNames, sortColumn)
