@@ -467,24 +467,36 @@ fun TableForItems(
     }
     var mDisplayMenu = remember { mutableStateOf(false) }
     var sortColumn = remember{mutableStateOf("id")}
-    val itemsAll = objList.size
+    val itemsAll by mutableStateOf(objList.size)
     val listState: LazyGridState = rememberLazyGridState()
-    var visibleItemsCount = listState.layoutInfo.visibleItemsInfo.size
+//    val visibleItemsCount = listState.layoutInfo.visibleItemsInfo.size
+    var visItems by remember { mutableStateOf(listState.layoutInfo.visibleItemsInfo.size) } //todo разобраться с обновлением при выборе места хранения
+//    var visItems by mutableStateOf(listState.layoutInfo.visibleItemsInfo.size)
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .collect { (index, offset) ->
+                val cols = fieldNames?.count {(mapForFieldNames[it]!!) }
+                val visibleItemsCount = listState.layoutInfo.visibleItemsInfo.size
+                visItems = index / cols!! + visibleItemsCount / cols!!
+//                    println("Scrolled to item index: ${index / cols!! + visibleItemsCount / cols!!}")
+                println("Scrolled to item index: $index")
+                println("visItems: $visItems cols = $cols")
+                println("visibleItemsCount: $visibleItemsCount")
+            }
+    }
+
     Row( modifier = Modifier
         .fillMaxWidth()
         .padding(4.dp)
         .border(2.dp, Color.Black)
     ){
-        val cols = fieldNames?.count {(mapForFieldNames[it]!!) }
-        val visItems = visibleItemsCount / cols!!
-        //todo сделать увеличение и уменьшение кол-ва просмотренных, можно по просмотренным id ориентироваться
         Text(text = "Просмотрено: $visItems ||  Всего: $itemsAll")
     }
     MakeTableCaption(mDisplayMenu, mapForFieldNames, fieldNames, sortColumn)
 
     var clickedItemId = remember { mutableStateOf("") }
     val mapColnamesToNumber = mapOf(0 to "id", 1 to "name", 2 to "place", 3 to "info")
-    println("visibleItemsCount = $visibleItemsCount")
+//    println("visibleItemsCount = $visibleItemsCount")
     MakeTableContent(
         mapForFieldNames,
         objList,
@@ -634,6 +646,14 @@ private fun MakeTableContent( //содержимое таблицы на осн�
 //        println("---!!! item 3 is visible !!!---")
 //    } else {
 //        println("---!!! item 3 is not visible !!!---")
+//    }
+//    LaunchedEffect(listState) {
+//        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+//            .collect { (index, offset) ->
+//                val cols = fieldNames?.count {(mapForFieldNames[it]!!) }
+//                println("Scrolled to item index: $index with offset: $offset")
+//                // You can trigger other actions here on scroll
+//            }
 //    }
     if (mapForFieldNames.isNotEmpty()) {
         LazyVerticalGrid(
