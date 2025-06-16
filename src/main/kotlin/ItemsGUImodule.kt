@@ -468,19 +468,22 @@ fun TableForItems(
     var mDisplayMenu = remember { mutableStateOf(false) }
     var sortColumn = remember{mutableStateOf("id")}
     val itemsAll by mutableStateOf(objList.size)
-    val listState: LazyGridState = rememberLazyGridState()
+    val listState: LazyGridState = rememberLazyGridState(0,0)
 //    val visibleItemsCount = listState.layoutInfo.visibleItemsInfo.size
-    var visItems by remember { mutableStateOf(listState.layoutInfo.visibleItemsInfo.size) } //todo разобраться с обновлением при выборе места хранения
+    var visItems = remember { mutableStateOf(listState.layoutInfo.visibleItemsInfo.size) }
 //    var visItems by mutableStateOf(listState.layoutInfo.visibleItemsInfo.size)
+    val fields = fieldNames?.count {mapForFieldNames[it]!!}?:1
+    val tempCount = listState.layoutInfo.visibleItemsInfo.size / fields
+    println("---!! table row visible = ${tempCount} !!---")
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
             .collect { (index, offset) ->
                 val cols = fieldNames?.count {(mapForFieldNames[it]!!) }
                 val visibleItemsCount = listState.layoutInfo.visibleItemsInfo.size
-                visItems = index / cols!! + visibleItemsCount / cols!!
+                visItems.value = index / cols!! + visibleItemsCount / cols!!
 //                    println("Scrolled to item index: ${index / cols!! + visibleItemsCount / cols!!}")
                 println("Scrolled to item index: $index")
-                println("visItems: $visItems cols = $cols")
+                println("visItems: ${visItems.value} cols = $cols")
                 println("visibleItemsCount: $visibleItemsCount")
             }
     }
@@ -490,7 +493,9 @@ fun TableForItems(
         .padding(4.dp)
         .border(2.dp, Color.Black)
     ){
-        Text(text = "Просмотрено: $visItems ||  Всего: $itemsAll")
+        val rows = if (visItems.value==0) tempCount else itemsAll
+        val rowsAtTable = if (visItems.value<itemsAll) visItems.value else rows
+             Text(text = "Просмотрено: $rowsAtTable ||  Всего: $itemsAll")
     }
     MakeTableCaption(mDisplayMenu, mapForFieldNames, fieldNames, sortColumn)
 
