@@ -12,7 +12,7 @@ class DataHolder {
 
     private var storageNameToPngMap = mapOf(
                                         Pair(StorageName.BACK_SHELF, "206_backShelf.png"),
-                                        Pair(StorageName.IN_BACK_SHELF, "BackShelf_render.png"),
+                                        Pair(StorageName.IN_BACK_SHELF, "BackShelf_zones.PNG"),
                                         Pair(StorageName.UNDER_3D_PRINTER, "206_3Dprinter.png"),
                                         Pair(StorageName.CENTER_TABLES, "206_center.png"),
                                         Pair(StorageName.TABLE_AT_DOOR, "206_door.png"),
