@@ -42,7 +42,7 @@ dependencies {
 // ./gradlew runDistributable
 compose.desktop {
     application {
-        mainClass = "MainKt"
+        mainClass = "DataOrganiserKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)

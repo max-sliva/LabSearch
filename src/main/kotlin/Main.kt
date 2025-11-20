@@ -171,7 +171,8 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
                     )
                 }
             }
-            val labImageFile = loadImageFrom("src/main/resources/$imageSrc")
+//            val labImageFile = loadImageFrom("src/main/resources/$imageSrc")
+            val labImageFile = loadImageFrom("resources/$imageSrc")
 //            Row(){
                 Image(
                     bitmap = labImageFile,
