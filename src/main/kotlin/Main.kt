@@ -103,7 +103,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
 //                        namesList.forEach { print("$it ") }
                         if (newText.length >= 3) { //если в поиске >3 букв
                             namesList.clear()
-                            arrayOfNames.forEach {
+                            arrayOfNames.forEach {//todo проверить, почему долго ищет, запихать в отдельный поток!!!
                                 var accept = false
                                 it.split(" ").forEach { word ->
                                     if (word.lowercase(Locale.getDefault()).startsWith(newText.lowercase())) accept = true
@@ -111,7 +111,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
                                 }
                                 if (accept) {
                                     namesList.add(it)
-                                    println("namesList = $namesList searchValue = $searchValue")
+//                                    println("namesList = $namesList searchValue = $searchValue")
                                     onPlaceOrItemSelect(curPlace!!.value, searchValue)
                                 }
                             }
@@ -148,7 +148,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
                     Text("x")
                 }
             }
-            if (isLazyRowVisible) LazyRow() {
+            if (isLazyRowVisible) LazyRow() {//todo попробовать другой вид для списка подходящих, или убрать
                 items(namesList) { name ->
                     Text(
                         text = name,

@@ -37,15 +37,16 @@ fun OrganiserGUI(dbWork: DBwork) {
                     ) else dbWork.getAllObjectsForCollection("Items")
                     objList.clear()
                     if (selItem.isNotEmpty()) {
-                        println("---!!! item is found selItem = $selItem !!----")
+//                        println("---!!! item is found selItem = $selItem !!----")
 //                        itemsInPlace = itemsInPlace.filter { (it as Item).name.contains(selItem) }
                         itemsInPlace = itemsInPlace.filter { (it as Item).name.lowercase(Locale.getDefault()).contains(selItem.lowercase()) }
                     } else {
                         println("---!!! place is found !!----")
                     }
                     objList.addAll(itemsInPlace)
-                    println("itemsInPlace = $objList")
-                    println("selectedItem = $selectedItem")
+//                    objList.clear()
+//                    println("itemsInPlace = $objList")
+//                    println("selectedItem = ${selectedItem.value}")
                 }
             }
             Column(

@@ -780,21 +780,41 @@ private fun TableRowItem(
             modifier = Modifier
 //                .border(2.dp, Color.Red),
 //                .padding(start = 5.dp)
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            val button = event.buttons
-                            if (button.isSecondaryPressed || button.isPrimaryPressed) {
-                                println("item clicked with id = ${rowWithID[0]} image = ${if (rowWithID.size>4) rowWithID[4] else "no img"}")
-                                clickedItemId1.value = rowWithID[0]
-                                curPlace.value = StorageName.valueOf(rowWithID[2])
-                                onPlaceSelect(curPlace.value, rowWithID[4])
-                                clickedItemId1.value = rowWithID[0]
-                            }
-                        }
-                    }
-                }
+                //.clickable()
+//                .pointerInput(Unit) {  //с этим методом глючил при выбранном объекте и переключении на другое место на картинке
+//                    awaitPointerEventScope {
+//                        while (true) {
+//                            val event = awaitPointerEvent()
+//                            val button = event.buttons
+//                            if (button.isSecondaryPressed || button.isPrimaryPressed) {
+//                                println("item clicked with id = ${rowWithID[0]} image = ${if (rowWithID.size>4) rowWithID[4] else "no img"}")
+////                                clickedItemId1.value = rowWithID[0]
+//                                curPlace.value = StorageName.valueOf(rowWithID[2])
+//                                onPlaceSelect(curPlace.value, rowWithID[4])
+//                                clickedItemId1.value = rowWithID[0]
+//                            }
+//                        }
+//                    }
+//                }
+                .combinedClickable(  // detects multiple click types
+                    onClick = {
+//                                clickCount++
+//                                lastClickInfo = "Primary click"
+                        println("Primary click")
+                        println("item clicked with id = ${rowWithID[0]} image = ${if (rowWithID.size>4) rowWithID[4] else "no img"}")
+//                                clickedItemId1.value = rowWithID[0]
+                        curPlace.value = StorageName.valueOf(rowWithID[2])
+                        onPlaceSelect(curPlace.value, rowWithID[4])
+                        clickedItemId1.value = rowWithID[0]
+
+                    },
+//                            onSecondaryClick = {
+//                                println("Primary click")
+//                            },
+//                            onLongClick = {
+//                                lastClickInfo = "Long press"
+//                            }
+                )
                 .border(
                     if (clickedItemId1.value == rowWithID[0]) 4.dp else 2.dp,
                     borderColor.value
@@ -806,6 +826,25 @@ private fun TableRowItem(
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .padding(start = 5.dp)
+//                        .combinedClickable(  // detects multiple click types
+//                            onClick = {
+////                                clickCount++
+////                                lastClickInfo = "Primary click"
+//                                println("Primary click")
+//                                println("item clicked with id = ${rowWithID[0]} image = ${if (rowWithID.size>4) rowWithID[4] else "no img"}")
+////                                clickedItemId1.value = rowWithID[0]
+//                                curPlace.value = StorageName.valueOf(rowWithID[2])
+//                                onPlaceSelect(curPlace.value, rowWithID[4])
+//                                clickedItemId1.value = rowWithID[0]
+//
+//                            },
+////                            onSecondaryClick = {
+////                                println("Primary click")
+////                            },
+////                            onLongClick = {
+////                                lastClickInfo = "Long press"
+////                            }
+//                        ),
                 )
             })
     }
