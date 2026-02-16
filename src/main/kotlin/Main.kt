@@ -53,6 +53,7 @@ fun searchItem( //возвращает нужную картинку для ис
 @Preview
 fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<String>?, onPlaceOrItemSelect: (StorageName, String) -> Unit) {
     var text by remember { mutableStateOf("Найти") }
+//    var search
     var searchValue by remember { //объект для работы с текстом, для TextField
         mutableStateOf("") //его начальное значение
     }
@@ -95,28 +96,32 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
             horizontalAlignment = Alignment.CenterHorizontally, //по центру горизонтально
 //            verticalArrangement = Arrangement.Center //и вертикально
         ) { // вертикальная колонка для размещения объектов
+            if (searchValue.length >= 3) { //если в поиске >3 букв
+                LaunchedEffect(Unit) {//корутина для поиска в списке
+                    namesList.clear()
+                    arrayOfNames.forEach {//todo проверить, почему долго ищет, запихать в отдельный поток!!!
+                        var accept = false
+                        it.split(" ").forEach { word ->
+                            if (word.lowercase(Locale.getDefault())
+                                    .startsWith(searchValue.lowercase())
+                            ) accept = true
+                            //todo add check for several words
+                        }
+                        if (accept) {
+                            namesList.add(it)
+//                                    println("namesList = $namesList searchValue = $searchValue")
+                            onPlaceOrItemSelect(curPlace!!.value, searchValue)
+                        }
+                    }
+                }
+                } else isLazyRowVisible = false
+                if (namesList.isNotEmpty()) isLazyRowVisible = true
+
             Row() {
                 TextField(
                     value = searchValue, //связываем текст из поля с созданным ранее объектом
                     onValueChange = { newText -> //обработчик ввода значений в поле
                         searchValue = newText //все изменения сохраняем в наш объект
-//                        namesList.forEach { print("$it ") }
-                        if (newText.length >= 3) { //если в поиске >3 букв
-                            namesList.clear()
-                            arrayOfNames.forEach {//todo проверить, почему долго ищет, запихать в отдельный поток!!!
-                                var accept = false
-                                it.split(" ").forEach { word ->
-                                    if (word.lowercase(Locale.getDefault()).startsWith(newText.lowercase())) accept = true
-                                    //todo add check for several words
-                                }
-                                if (accept) {
-                                    namesList.add(it)
-//                                    println("namesList = $namesList searchValue = $searchValue")
-                                    onPlaceOrItemSelect(curPlace!!.value, searchValue)
-                                }
-                            }
-                        } else isLazyRowVisible = false
-                        if (namesList.isNotEmpty()) isLazyRowVisible = true
                     },
                     textStyle = TextStyle( //объект для изменения стиля текста
                         fontSize = 14.sp //увеличиваем шрифт
