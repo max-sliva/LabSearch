@@ -99,7 +99,9 @@ fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: Mutable
     //todo сделать нормальное оформление табов
     MaterialTheme {
         var tabIndex by remember { mutableStateOf(0) }
-        val tabs = listOf("Items", "Places")
+        val tabs = listOf("Items",
+        //    "Places" ////раскомментировать для серверной части
+        )
 
         Column(modifier = Modifier.fillMaxWidth()) {
             TabRow(
@@ -117,11 +119,11 @@ fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: Mutable
             }
 
             when (tabIndex) {
-                0 -> ItemsGUI(objList as SnapshotStateList<Item>, dbWork, curPlace){ place, imgPath ->
+                0 -> ItemsGUI(objList as SnapshotStateList<Item>, dbWork, curPlace,"client"){ place, imgPath ->
                     curPlace.value = place
                     onPlaceSelect(place, imgPath)
                 }
-                1 -> PlacesGUI()
+              //  1 -> PlacesGUI() //раскомментировать для серверной части
 //            2 -> SettingsScreen()
             }
         }

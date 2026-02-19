@@ -99,7 +99,7 @@ fun LabRenderView(curPlace: MutableState<StorageName>?, itemImage: MutableState<
             if (searchValue.length >= 3) { //если в поиске >3 букв
                 LaunchedEffect(Unit) {//корутина для поиска в списке
                     namesList.clear()
-                    arrayOfNames.forEach {//todo проверить, почему долго ищет, запихать в отдельный поток!!!
+                    arrayOfNames.forEach {
                         var accept = false
                         it.split(" ").forEach { word ->
                             if (word.lowercase(Locale.getDefault())

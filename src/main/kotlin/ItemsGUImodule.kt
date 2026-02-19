@@ -78,6 +78,7 @@ fun ItemsGUI(
     objList: SnapshotStateList<Item>,
     dbWork: DBwork,
     curPlace: MutableState<StorageName>,
+    mode: String = "server",
     onPlaceSelect: (place: StorageName, imgPath: String) -> Unit
 ) {
 //    MaterialTheme {
@@ -108,33 +109,35 @@ fun ItemsGUI(
         ) {
             var itemsList = remember { mutableStateListOf<Item?>() }
 //            var itemsList2 = remember { mutableStateListOf<Int>() }
-            Button(
-                onClick = {
-                    addedItemsCount = 0
-                    println("load")
+            if (mode == "server") {
+                Button(
+                    onClick = {
+                        addedItemsCount = 0
+                        println("load")
 //                    val currentDir = File(System.getProperty("user.dir"))
 //                    val currentDir2 = Paths.get("").toAbsolutePath().toString()
 //                    val fileDialog = FileDialog(null as ComposeWindow?, "Select File", FileDialog.LOAD)
 //                    println("curDir = ${currentDir.absolutePath} \ncurDir2 = $currentDir2")
 ////            fileDialog.directory = currentDir.absolutePath
 //                    fileDialog.directory = currentDir2
-                    fileDialog.isVisible = true
-                    println("fileDialog.directory = ${fileDialog.directory}")
-                    if (fileDialog.file != null) {
-                        val file = File(fileDialog.directory, fileDialog.file)
-                        println("file = ${file.name}")
-                        excelWork.setPath(file.path)
-                        itemsTotal = excelWork.getRowsCount(1, 2) - 1
-                        println("itemsTotal.value in button click = ${itemsTotal}")
-                        showDialog.value = true
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color(0xff1e63b2), // Custom background color
-                    contentColor = Color.White    // Custom text color
-                ),
-            ) {
-                Text(text = "Загрузить БД (Apache POI)")
+                        fileDialog.isVisible = true
+                        println("fileDialog.directory = ${fileDialog.directory}")
+                        if (fileDialog.file != null) {
+                            val file = File(fileDialog.directory, fileDialog.file)
+                            println("file = ${file.name}")
+                            excelWork.setPath(file.path)
+                            itemsTotal = excelWork.getRowsCount(1, 2) - 1
+                            println("itemsTotal.value in button click = ${itemsTotal}")
+                            showDialog.value = true
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color(0xff1e63b2), // Custom background color
+                        contentColor = Color.White    // Custom text color
+                    ),
+                ) {
+                    Text(text = "Загрузить БД (Apache POI)")
+                }
             }
 //            Button(
 //                onClick = {
@@ -188,12 +191,14 @@ fun ItemsGUI(
         }
         var isChecked = remember { mutableStateOf(false) }
         var btnActive = remember { mutableStateOf(false) }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "New item")
-            Checkbox(
-                checked = isChecked.value,
-                onCheckedChange = { isChecked.value = it }
-            )
+        if (mode == "server") {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "New item")
+                Checkbox(
+                    checked = isChecked.value,
+                    onCheckedChange = { isChecked.value = it }
+                )
+            }
         }
         var itemForEdit = remember { mutableStateOf(Item(name = "", place = Place(name = StorageName.CUSTOM_PLACE))) }
         var id = remember { mutableStateOf("") }
