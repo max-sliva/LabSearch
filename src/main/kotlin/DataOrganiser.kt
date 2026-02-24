@@ -53,7 +53,7 @@ fun OrganiserGUI(dbWork: DBwork) {
                 modifier = Modifier
                     .weight(3f)
             ) {
-                TabPane(objList, dbWork, curPlace){ place, imgPath ->
+                TabPane(objList, dbWork, curPlace, "server"){ place, imgPath ->   //"client",   "server"
                     curPlace.value = place
                     itemImage.value = imgPath
                     println("curPlace = ${curPlace.value}, imgPath = $imgPath")
@@ -95,13 +95,11 @@ fun PlacesGUI() {
 //}
 
 @Composable
-fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: MutableState<StorageName>, onPlaceSelect: (place: StorageName, imgPath: String) -> Unit) {
+fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: MutableState<StorageName>, mode: String, onPlaceSelect: (place: StorageName, imgPath: String) -> Unit) {
     //todo сделать нормальное оформление табов
     MaterialTheme {
         var tabIndex by remember { mutableStateOf(0) }
-        val tabs = listOf("Items",
-        //    "Places" ////раскомментировать для серверной части
-        )
+        val tabs = if (mode=="client") listOf("Items") else listOf("Items", "Places" )
 
         Column(modifier = Modifier.fillMaxWidth()) {
             TabRow(
@@ -119,11 +117,11 @@ fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: Mutable
             }
 
             when (tabIndex) {
-                0 -> ItemsGUI(objList as SnapshotStateList<Item>, dbWork, curPlace,"client"){ place, imgPath ->
+                0 -> ItemsGUI(objList as SnapshotStateList<Item>, dbWork, curPlace, mode){ place, imgPath ->
                     curPlace.value = place
                     onPlaceSelect(place, imgPath)
                 }
-              //  1 -> PlacesGUI() //раскомментировать для серверной части
+                1 -> PlacesGUI()
 //            2 -> SettingsScreen()
             }
         }

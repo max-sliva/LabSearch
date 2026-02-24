@@ -212,7 +212,7 @@ fun ItemsGUI(
             btnActive.value = false
             id.value = ""
         }
-        TableForItems(objList, updateDb, dbWork, isChecked, id, itemForEdit, curPlace) { place, imgPath ->
+        TableForItems(objList, updateDb, dbWork, isChecked, id, itemForEdit, curPlace, mode) { place, imgPath ->
             curPlace.value = place
             onPlaceSelect(place, imgPath)
         }
@@ -410,6 +410,7 @@ fun TableForItems(
     id: MutableState<String>,
     itemForEdit: MutableState<Item>?,
     curPlace: MutableState<StorageName>,
+    mode: String,
     onPlaceSelect: (place: StorageName, imgPath: String) -> Unit
 ) {
     val itemColumns = 4
@@ -520,6 +521,7 @@ fun TableForItems(
         curPlace,
         sortColumn,
         listState,
+        mode,
         onPlaceSelect
     )
 
@@ -627,6 +629,7 @@ private fun MakeTableContent( //содержимое таблицы на осн�
     curPlace: MutableState<StorageName>,
     sortColumn: MutableState<String>,
     listState: LazyGridState,
+    mode: String,
     onPlaceSelect: (StorageName, String) -> Unit
 ) {
     when (sortColumn.value){
@@ -704,6 +707,7 @@ private fun MakeTableContent( //содержимое таблицы на осн�
                             row,
                             index,
                             curPlace,
+                            mode,
                             onPlaceSelect
                         )
 //                    }
@@ -728,11 +732,12 @@ private fun TableRowItem(
     row: List<String>,
     index: Int,
     curPlace: MutableState<StorageName>,
+    mode: String,
     onPlaceSelect: (StorageName, String) -> Unit
 ) {
     ContextMenuArea(
         items = {
-            listOf(
+            if (mode=="server") listOf(
                 ContextMenuItem("Edit") {
                     println("trying to edit item with id = ${rowWithID[0]} ")
                     isChecked.value = true
@@ -748,6 +753,7 @@ private fun TableRowItem(
                     showDialog.value = true
                 }
             )
+            else listOf()
         }
     ) {
         //                    val borderColor = if (row[0]==id.value) Color.Green  else Color(0xff1e63b2)
