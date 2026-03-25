@@ -5,13 +5,17 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
+import java.awt.MenuItem
+//import java.awt.MenuItem
 import java.util.Locale
+import javax.swing.KeyStroke
 
 @Composable
-fun OrganiserGUI(dbWork: DBwork) {
+fun OrganiserGUI(dbWork: DBwork, mode: String) {
     var objList = remember { mutableStateListOf<Thing>() }
     val curPlace = remember { mutableStateOf(StorageName.CUSTOM_PLACE) }
     val selectedItem = remember { mutableStateOf("") }
@@ -53,7 +57,7 @@ fun OrganiserGUI(dbWork: DBwork) {
                 modifier = Modifier
                     .weight(3f)
             ) {
-                TabPane(objList, dbWork, curPlace, "server"){ place, imgPath ->   //"client",   "server"
+                TabPane(objList, dbWork, curPlace, mode){ place, imgPath ->   //"client",   "server"
                     curPlace.value = place
                     itemImage.value = imgPath
                     println("curPlace = ${curPlace.value}, imgPath = $imgPath")
@@ -132,6 +136,7 @@ fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: Mutable
 fun main() = application {
     val dbWork = DBwork()
     val maxId =  dbWork.findMaxNumericId("Items")
+    println("db path = ${dbWork.getDB().path}")
     println("maxId = $maxId")
 //    dbWork.clearCollection("Items")
 //    dbWork.getAllCollectionsFromDB()
@@ -155,8 +160,40 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
 
         ) {
+        var mode = "server"  //client, server
+        if (mode == "server"){
+            MenuBar {
+                Menu("File", mnemonic = 'F') {
+                    Item("New project",
+                        onClick = {
+                            println("New clicked")
+                            //todo сделать создание папки для нового проекта
+                        }
+                    )
+                    Item("Open project...",
+                        onClick = {
+                            println("Open clicked")
+                            //todo сделать открытие проекта
+                        }
+                    )
+                    Separator()
+//                    Item("Save ", onClick = { println("Save clicked") })
+//                    Item("Save As...", onClick = { println("Save As clicked") })
+//                    Separator()
+                    Item("Exit", onClick = { exitApplication() })
+                }
+                Menu("Edit", mnemonic = 'E') {
+//                    MenuItem("Undo", onClick = { /* Undo */ })
+//                    MenuItem("Redo", onClick = { /* Redo */ })
+//                    Separator()
+//                    MenuItem("Cut", onClick = { /* Cut */ })
+//                    MenuItem("Copy", onClick = { /* Copy */ })
+//                    MenuItem("Paste", onClick = { /* Paste */ })
+                }
+            }
+        }
 //        ItemsGUI(objList)
-        OrganiserGUI(dbWork)
+        OrganiserGUI(dbWork, mode)
 //        TabPane(/*objList,*/ dbWork)
     }
 }
