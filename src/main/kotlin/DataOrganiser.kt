@@ -10,8 +10,10 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
 import java.awt.MenuItem
+import java.io.FileInputStream
 //import java.awt.MenuItem
 import java.util.Locale
+import java.util.Properties
 import javax.swing.KeyStroke
 
 @Composable
@@ -134,10 +136,34 @@ fun TabPane(objList: SnapshotStateList<Thing>, dbWork: DBwork, curPlace: Mutable
 
 
 fun main() = application {
+    val curPath = System.getProperty("user.dir")
+    val appProps = Properties()
+    val folderNamePath = "$curPath/app.properties"
+    appProps.load(FileInputStream(folderNamePath))
+    println("props = ${appProps.entries}")
+    val itemsFolderName = appProps.getProperty("dbFolder")
+    val fullDBpath = "$curPath\\$itemsFolderName\\"
+    println("full dbpath from properties = $fullDBpath")
+//        try {
+//            val ITEM_NAME = "Some name"
+//            val PORT_NUMBER = "Some url"
+//            //create a properties file
+//            val props = Properties()
+//            props.setProperty("Item name", ITEM_NAME)
+//            props.setProperty("Port number", PORT_NUMBER)
+//            val f = File(appConfigPath)
+//            val out: OutputStream = FileOutputStream(f)
+//            //If you wish to make some comments
+//            props.store(out, "items with button ports association")
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//        }
+
     val dbWork = DBwork()
     val maxId =  dbWork.findMaxNumericId("Items")
     println("db path = ${dbWork.getDB().path}")
     println("maxId = $maxId")
+
 //    dbWork.clearCollection("Items")
 //    dbWork.getAllCollectionsFromDB()
     println("-----------------------------------------------------------")
